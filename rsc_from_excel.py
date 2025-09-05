@@ -221,31 +221,29 @@ if st.button("See my Top 3"):
     ch = channels.copy()
     ch["score"] = np.divide(scores, max_scores, out=np.zeros_like(scores), where=max_scores != 0)
 
-    rackstack = ch[["channel_name", "score"]].sort_values("score", ascending=False)
+        # --- Show Top 3 first ---
+    top3 = rackstack.head(3)
+    st.subheader("Top 3 Matches")
+    for _, r in top3.iterrows():
+        with st.container(border=True):
+            st.markdown(f"### {safe_text(r['channel_name'])}")
+            st.markdown(f"**Score:** {r['score']:.2%}")
 
-# --- Show Top 3 first ---
-top3 = rackstack.head(3)
-st.subheader("Top 3 Matches")
-for _, r in top3.iterrows():
-    with st.container(border=True):
-        st.markdown(f"### {safe_text(r['channel_name'])}")
-        st.markdown(f"**Score:** {r['score']:.2%}")
+            chan = ch[ch["channel_name"] == r["channel_name"]].iloc[0]
+            tags = safe_text(chan.get("tags"))
+            if tags:
+                st.markdown(f"**Tags:** {tags}")
+            why = safe_text(chan.get("why_fit_short"))
+            if why:
+                st.markdown(f"_{why}_")
+            link = safe_text(chan.get("compass_link"))
+            if link:
+                st.markdown(f"[Open Guidebook chapter]({link})")
 
-        chan = ch[ch["channel_name"] == r["channel_name"]].iloc[0]
-        tags = safe_text(chan.get("tags"))
-        if tags:
-            st.markdown(f"**Tags:** {tags}")
-        why = safe_text(chan.get("why_fit_short"))
-        if why:
-            st.markdown(f"_{why}_")
-        link = safe_text(chan.get("compass_link"))
-        if link:
-            st.markdown(f"[Open Guidebook chapter]({link})")
-
-# --- Then show Rack & Stack ---
-st.markdown("---")
-st.markdown("### All Channel Scores (Rack & Stack)")
-st.dataframe(rackstack)
+    # --- Then show Rack & Stack ---
+    st.markdown("---")
+    st.markdown("### All Channel Scores (Rack & Stack)")
+    st.dataframe(rackstack)
 
 
     # Debugging output removed for production
