@@ -1,0 +1,20 @@
+factor_id,factor_name,description,default_weight,min,max,step
+customer_service_sales,Customer Service & Sales,,1.0,0,10,1
+marketing,Marketing,,1.0,0,10,1
+personal_connections,Personal Connections,,1.0,0,10,1
+professional_network,Professional Network,,1.0,0,10,1
+proximity_to_customers,Proximity to Customers,,1.0,0,10,1
+aesthetic_and_experiential_appeal,Aesthetic and Experiential Appeal,,1.0,0,10,1
+customer-friendly_amenities,Customer-Friendly Amenities,,1.0,0,10,1
+regulatory_freedom,Regulatory Freedom,,1.0,0,10,1
+product_diversity,Product Diversity,,1.0,0,10,1
+high_volume_production,High Volume Production,,1.0,0,10,1
+operational_infrastructure,Operational Infrastructure,,1.0,0,10,1
+product_predictability,Product Predictability,,1.0,0,10,1
+schedule_flexibility,Schedule Flexibility,,1.0,0,10,1
+financial_resources,Financial Resources,,1.0,0,10,1
+floral_design,Floral Design,,1.0,0,10,1
+color_comprehension_and_accuracy,Color Comprehension and Accuracy,,1.0,0,10,1
+social_personality,Social Personality,,1.0,0,10,1
+stress_and_risk_tolerance,Stress and Risk Tolerance,,1.0,0,10,1
+time_management_organization,Time Management + Organization,,1.0,0,10,1

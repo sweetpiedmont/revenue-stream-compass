@@ -97,8 +97,9 @@ st.caption("Rate your Field Factors to see your Top 3 revenue streams.")
 
 factors, channels = load_from_excel(XLSX)
 
-st.write("DEBUG: Factor names from Excel")
-st.json(factors["factor_name"].tolist())
+# used when debugging and optimizing the math
+# st.write("DEBUG: Factor names from Excel")
+# st.json(factors["factor_name"].tolist())
 
 # Debug mode toggle
 debug_mode = st.checkbox("Enable Debug Mode")
@@ -242,21 +243,23 @@ if st.button("See my Top 3"):
             if link:
                 st.markdown(f"[Open Guidebook chapter]({link})")
 
-    if debug_mode:
-        raw_contribs = channels[factor_cols].values * uw_aligned.values
-        max_contribs = channels[factor_cols].values * 10.0
-        norm_contribs = np.divide(raw_contribs, max_contribs,
-                                  out=np.zeros_like(raw_contribs),
-                                  where=max_contribs != 0)
+    # Debugging output removed for production
+# if debug_mode:
+#     if debug_mode:
+        #raw_contribs = channels[factor_cols].values * uw_aligned.values
+        #max_contribs = channels[factor_cols].values * 10.0
+        #norm_contribs = np.divide(raw_contribs, max_contribs,
+                                  #out=np.zeros_like(raw_contribs),
+                                  #where=max_contribs != 0)
 
-        contribs = pd.DataFrame(norm_contribs, columns=factor_cols,
-                                index=channels["channel_name"])
-        score_map = dict(zip(channels["channel_name"], ch["score"]))
-        contribs["normalized_total"] = contribs.index.map(score_map)
-        contribs["normalized_score"] = contribs["normalized_total"]
+        #contribs = pd.DataFrame(norm_contribs, columns=factor_cols,
+                                #index=channels["channel_name"])
+        #score_map = dict(zip(channels["channel_name"], ch["score"]))
+        #contribs["normalized_total"] = contribs.index.map(score_map)
+        #contribs["normalized_score"] = contribs["normalized_total"]
 
-        st.markdown("### Debug: Contribution Breakdown (focus channels)")
-        st.dataframe(contribs.sort_values("normalized_score", ascending=False))
+        #st.markdown("### Debug: Contribution Breakdown (focus channels)")
+        #st.dataframe(contribs.sort_values("normalized_score", ascending=False))
 
 #adding this comment to test commit in VS Code
 
