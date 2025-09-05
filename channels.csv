@@ -1,0 +1,19 @@
+channel_id,channel_name,startup_cost,labor_level,cashflow_speed,tags,caveats,why_fit_short,compass_link,f_aesthetic_and_experiential_appeal,f_color_comprehension_and_accuracy,f_customer-friendly_amenities,f_customer_service_sales,f_financial_resources,f_floral_design,f_high_volume_production,f_marketing,f_operational_infrastructure,f_personal_connections,f_product_diversity,f_product_predictability,f_professional_network,f_proximity_to_customers,f_regulatory_freedom,f_schedule_flexibility,f_social_personality,f_stress_and_risk_tolerance,f_time_management_organization
+a_la_carte_weddings,A la Carte Weddings,,,,,,,,0.2,1.0,0.4,0.6,0.6,1.0,0.4,1.0,0.8,0.6,1.0,1.0,0.2,0.6,0.4,1.0,0.6,0.6,0.8
+bulk_to_consumer,Bulk to Consumer,,,,,,,,0.2,0.6,0.4,0.6,0.2,0.8,0.6,1.0,0.4,0.4,0.8,0.8,0.2,0.6,0.4,0.4,0.4,0.4,0.6
+community_and_corp_events,Community and Corp Events,,,,,,,,0.2,0.8,0.2,0.8,0.8,1.0,0.4,0.8,1.0,0.2,1.0,1.0,0.8,0.6,0.2,1.0,0.6,0.8,1.0
+consignment,Consignment,,,,,,,,0.2,0.2,0.2,0.4,0.2,0.8,0.2,0.6,0.4,0.2,0.8,0.4,0.8,1.0,0.2,0.8,0.4,0.2,0.6
+custom_weddings,Custom Weddings,,,,,,,,0.2,1.0,0.2,1.0,0.8,1.0,0.6,1.0,1.0,0.6,1.0,1.0,0.2,0.6,0.2,1.0,0.6,1.0,1.0
+farm_standshop,Farm Stand/Shop,,,,,,,,0.8,0.6,0.6,0.4,0.4,0.8,0.6,1.0,0.4,0.8,0.8,0.4,0.2,1.0,0.8,0.2,0.4,0.4,0.6
+farmers_market,Farmers Market,,,,,,,,0.2,0.6,0.2,1.0,0.6,0.8,0.6,0.4,1.0,0.4,1.0,0.8,0.2,0.8,0.2,0.8,1.0,0.6,1.0
+hotel_and_restaurant,Hotel and Restaurant,,,,,,,,0.2,0.6,0.2,0.6,0.8,1.0,0.4,0.6,0.8,0.2,1.0,0.6,0.8,0.8,0.2,0.8,0.6,0.6,1.0
+made-to-order_bouquets,Made-to-Order Bouquets,,,,,,,,0.2,0.8,0.4,0.8,0.4,1.0,0.6,1.0,0.6,0.6,1.0,0.4,0.2,0.8,0.4,0.8,0.6,0.6,0.6
+photography,Photography,,,,,,,,1.0,0.2,0.8,0.4,0.2,0.2,0.8,1.0,0.2,0.6,0.6,0.2,0.4,0.8,0.6,0.2,0.2,0.8,0.2
+selling_via_a_collective,Selling via a Collective,,,,,,,,0.2,0.2,0.2,0.2,0.2,0.2,0.6,0.4,0.6,0.2,0.2,0.8,0.6,0.6,0.2,0.6,0.4,0.2,0.6
+stockist,Stockist,,,,,,,,0.2,0.2,0.2,0.4,0.2,0.8,0.2,0.6,0.6,0.2,0.8,0.6,0.8,0.8,0.2,0.6,0.4,0.2,0.6
+subscriptions,Subscriptions,,,,,,,,0.2,0.6,0.4,0.8,0.2,0.8,0.6,1.0,0.6,0.8,1.0,0.8,0.2,0.8,0.4,0.2,0.6,0.2,0.8
+ws_to_grocery_stores,W/S to Grocery Stores,,,,,,,,0.2,0.2,0.2,0.4,0.4,0.8,1.0,0.2,1.0,0.2,0.8,1.0,0.2,0.6,0.2,1.0,0.4,0.6,1.0
+ws_to_local_florists,W/S to Local Florists,,,,,,,,0.2,0.8,0.2,0.6,0.2,0.2,0.4,0.2,0.8,0.2,0.2,0.8,0.2,0.6,0.2,0.6,0.4,0.4,0.6
+ws_to_wholesalers,W/S to Wholesalers,,,,,,,,0.2,0.2,0.2,0.4,0.2,0.2,1.0,0.2,1.0,0.2,0.2,1.0,0.2,0.6,0.2,0.8,0.4,0.4,1.0
+workshops,Workshops,,,,,,,,0.8,0.2,1.0,0.8,0.4,1.0,0.4,1.0,0.6,0.6,0.8,0.6,0.6,0.6,1.0,0.2,1.0,0.8,0.6
+you-pick,You-Pick,,,,,,,,0.8,0.2,1.0,0.8,0.4,0.2,0.8,1.0,0.2,0.6,0.6,0.6,0.6,0.6,1.0,0.2,0.8,0.8,0.6
