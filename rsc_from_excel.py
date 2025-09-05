@@ -257,3 +257,6 @@ if st.button("See my Top 3"):
 
         st.markdown("### Debug: Contribution Breakdown (focus channels)")
         st.dataframe(contribs.sort_values("normalized_score", ascending=False))
+
+#adding this comment to test commit in VS Code
+
