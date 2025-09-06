@@ -197,16 +197,7 @@ if st.button("See my Top 3"):
     uw = {f"f_{fid}": float(user_scores[fid]) for fid in user_scores.keys()}
     uw_df = pd.DataFrame([uw])
 
-    # 🚨 TEMPORARY PATCH 🚨
-    # At the moment, only a subset of Field Factors (e.g., 2 sliders) are being rendered in the UI.
-    # That means uw_df is missing many factor columns that exist in channels[factor_cols].
-    # This reindex step forces uw_df to have ALL factor columns, filling missing ones with 0.
-    # ⚠️ IMPORTANT: Once the app is updated to render ALL Field Factors with sliders (with proper
-    # descriptions + labels pulled from Excel), this reindex line (below) should be REMOVED.
-    uw_df = uw_df.reindex(columns=channels[factor_cols].columns, fill_value=0)
-
     uw_aligned = uw_df[channels[factor_cols].columns]
-
 
     scores = np.dot(channels[factor_cols].values, uw_aligned.values.T).reshape(-1)
     max_vector = np.array([10.0] * len(factor_cols))
