@@ -195,7 +195,50 @@ for category, factor_list in factor_categories.items():
             "</div>",
             unsafe_allow_html=True
         )
+# =========================
+# >>> NEW BLOCK: render all remaining factors as simple sliders
+#     (inserted directly AFTER the loop above, BEFORE CALCULATE)
+# =========================
+_specials = set(name for lst in factor_categories.values() for name in lst)
 
+_all_factors = (
+    factors.loc[:, ["factor_name", "factor_id", "min", "max", "step"]]
+           .dropna(subset=["factor_name", "factor_id"])
+           .drop_duplicates(subset=["factor_id"])
+           .sort_values("factor_name")
+           .reset_index(drop=True)
+)
+
+with st.expander("Show all other Field Factors", expanded=True):
+    for _, _row in _all_factors.iterrows():
+        _fname = str(_row["factor_name"]).strip()
+        if _fname in _specials:
+            continue  # already shown above
+
+        _fid   = str(_row["factor_id"]).strip()
+        _vmin  = int(_row["min"])  if pd.notna(_row["min"])  else 0
+        _vmax  = int(_row["max"])  if pd.notna(_row["max"])  else 10
+        _vstep = int(_row["step"]) if pd.notna(_row["step"]) else 1
+        _vdef  = int((_vmax + _vmin) // 2)
+
+        st.markdown(f"**{_fname}**")
+        user_scores[_fid] = st.slider(
+            label=_fname,
+            min_value=_vmin,
+            max_value=_vmax,
+            value=_vdef,
+            step=_vstep,
+            key=f"slider_{_fid}",            # different key namespace from the fancy section
+            label_visibility="collapsed"
+        )
+
+        st.markdown(
+            "<div style='display:flex; justify-content:space-between; margin-top:-8px;'>"
+            "<span style='font-size:0.8em; color:gray;'>Weakness</span>"
+            "<span style='font-size:0.8em; color:gray;'>Strength</span>"
+            "</div>",
+            unsafe_allow_html=True
+        )
 # -------------------------
 # CALCULATE
 # -------------------------
