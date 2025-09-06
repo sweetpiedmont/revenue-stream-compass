@@ -71,6 +71,9 @@ def load_from_excel(xlsx_path: Path):
     if not factor_meta.empty:
         factors = factors.merge(factor_meta, on="factor_name", how="left")
 
+    # Always regenerate factor_id from factor_name to avoid KeyErrors
+    factors["factor_id"] = factors["factor_name"].map(slugify)
+
     # --- Build channels ---
     w = weights.rename(columns={first_col: "factor"}).copy()
     channel_cols = [c for c in w.columns if c != "factor"]
