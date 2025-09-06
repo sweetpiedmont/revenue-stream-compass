@@ -97,6 +97,9 @@ st.caption("Rate your Field Factors to see your Top 3 revenue streams.")
 
 factors, channels = load_from_excel(XLSX)
 
+# Safe default so any stray references won't crash before user clicks the button
+rackstack = pd.DataFrame(columns=["channel_name", "score"])
+
 # used when debugging and optimizing the math
 # st.write("DEBUG: Factor names from Excel")
 # st.json(factors["factor_name"].tolist())
@@ -221,7 +224,14 @@ if st.button("See my Top 3"):
     ch = channels.copy()
     ch["score"] = np.divide(scores, max_scores, out=np.zeros_like(scores), where=max_scores != 0)
 
-        # --- Show Top 3 first ---
+    # Build Rack & Stack (all channels sorted by score, highest first)
+    rackstack = (
+        ch.loc[:, ["channel_name", "score"]]
+          .sort_values("score", ascending=False)
+          .reset_index(drop=True)
+    )
+
+    # --- Show Top 3 first ---
     top3 = rackstack.head(3)
     st.subheader("Top 3 Matches")
     for _, r in top3.iterrows():
