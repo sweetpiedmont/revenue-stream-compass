@@ -192,7 +192,13 @@ for _, cat_row in categories.iterrows():
 # CALCULATE SCORES
 # -------------------------
 st.markdown("---")
+
+# Button sets a flag in session_state
 if st.button("See my Top 3"):
+    st.session_state.show_results = True
+
+# Only run calculations if flag is set
+if st.session_state.get("show_results", False):
     factor_cols = [c for c in channels.columns if c.startswith("f_")]
 
     uw = {f"f_{fid}": float(user_scores[fid]) for fid in user_scores.keys()}
@@ -208,32 +214,22 @@ if st.button("See my Top 3"):
     ch["score"] = np.divide(scores, max_scores, out=np.zeros_like(scores), where=max_scores != 0)
 
     # --- Contribution Analysis (row-normalized) ---
-    # Raw contributions: user score × channel sensitivity for each factor
     raw_contribs = channels[factor_cols].values * uw_aligned.values
-
-    # Row totals = total score per channel before normalization
     row_totals = raw_contribs.sum(axis=1, keepdims=True)
-
-    # Normalize so contributions sum to 1.0 for each channel
     contribs = np.divide(
         raw_contribs,
         row_totals,
         out=np.zeros_like(raw_contribs),
         where=row_totals != 0
     )
-
-    # Convert to DataFrame
     contribs = pd.DataFrame(
         contribs,
         columns=factor_cols,
         index=channels["channel_name"]
     )
-
-    # Add total channel score (so you can sort/filter later)
     score_map = dict(zip(channels["channel_name"], ch["score"]))
     contribs["normalized_total"] = contribs.index.map(score_map)
 
-    # Example helper: get top strengths & weaknesses (by % contribution)
     def top_strengths_weaknesses(channel_name, n=2):
         row = contribs.loc[channel_name, factor_cols]
         sorted_factors = row.sort_values(ascending=False)
@@ -241,14 +237,14 @@ if st.button("See my Top 3"):
         weaknesses = sorted_factors.tail(n).index.tolist()
         return strengths, weaknesses
 
-    # Build Rack & Stack (all channels sorted by score, highest first)
+    # Build Rack & Stack (all channels sorted by score)
     rackstack = (
         ch.loc[:, ["channel_name", "score"]]
           .sort_values("score", ascending=False)
           .reset_index(drop=True)
     )
 
-    # --- Show Top 3 first ---
+    # --- Show Top 3 ---
     top3 = rackstack.head(3)
     st.subheader("Top 3 Matches")
     for _, r in top3.iterrows():
@@ -267,23 +263,11 @@ if st.button("See my Top 3"):
             if link:
                 st.markdown(f"[Open Guidebook chapter]({link})")
 
-# -------------------------
-# CTA CREATION INSIDE STREAMLIT APP
-# -------------------------
     # --- Build portable Top 3 list for CTA ---
     top_3 = top3[["channel_name", "score"]].values.tolist()
 
-    # Show Top 3 list to user
-    st.header("🌟 Your Top 3 Revenue Stream Matches")
-
-    for channel, score in top_3:
-        st.write(f"**{channel}** — Score: {score:.1f}")
-
     st.markdown("---")
-
-    # CTA email capture
     st.subheader("📩 Want to Know *Why* These Are Your Top 3?")
-
     st.markdown(
         "Get a personalized explanation of your results delivered straight to your inbox — "
         "including some of the key strengths and challenges behind your Top 3 matches."
@@ -307,16 +291,16 @@ if st.button("See my Top 3"):
                 "top3": [c for c, s in top_3]
             }
             try:
-                st.write("📡 Sending payload:", payload)   # 👈 Debug line
+                st.write("📡 Sending payload:", payload)   # Debug
                 r = requests.post(zapier_webhook_url, json=payload)
-                st.write("🔎 Response status:", r.status_code)  # 👈 Debug line
+                st.write("🔎 Response status:", r.status_code)  # Debug
                 if r.status_code == 200:
                     st.success("✅ Thanks! Your personalized Top 3 explanation is on its way to your inbox.")
                 else:
-                    st.error("❌ Oops — something went wrong. Please try again.")
+                    st.error(f"❌ Oops — something went wrong. Status {r.status_code}")
             except Exception as e:
-                st.error("⚠️ Connection failed. Please try again later.")
-
+                st.error(f"⚠️ Connection failed: {e}")
+                
 # -------------------------
 # DEBUGGING STUFF
 # -------------------------
