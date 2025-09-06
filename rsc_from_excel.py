@@ -307,7 +307,9 @@ if st.button("See my Top 3"):
                 "top3": [c for c, s in top_3]
             }
             try:
+                st.write("📡 Sending payload:", payload)   # 👈 Debug line
                 r = requests.post(zapier_webhook_url, json=payload)
+                st.write("🔎 Response status:", r.status_code)  # 👈 Debug line
                 if r.status_code == 200:
                     st.success("✅ Thanks! Your personalized Top 3 explanation is on its way to your inbox.")
                 else:
