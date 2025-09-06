@@ -206,30 +206,33 @@ if st.button("See my Top 3"):
     ch = channels.copy()
     ch["score"] = np.divide(scores, max_scores, out=np.zeros_like(scores), where=max_scores != 0)
 
-    # --- Contribution Analysis ---
+    # --- Contribution Analysis (row-normalized) ---
+    # Raw contributions: user score × channel sensitivity for each factor
     raw_contribs = channels[factor_cols].values * uw_aligned.values
-    max_contribs = channels[factor_cols].values * 10.0
 
-    # Normalize by factor importance (avoid divide by zero)
-    norm_contribs = np.divide(
-        raw_contribs, 
-        max_contribs, 
-        out=np.zeros_like(raw_contribs), 
-        where=max_contribs != 0
+    # Row totals = total score per channel before normalization
+    row_totals = raw_contribs.sum(axis=1, keepdims=True)
+
+    # Normalize so contributions sum to 1.0 for each channel
+    contribs = np.divide(
+        raw_contribs,
+        row_totals,
+        out=np.zeros_like(raw_contribs),
+        where=row_totals != 0
     )
 
-    # Make a DataFrame of contributions per factor per channel
+    # Convert to DataFrame
     contribs = pd.DataFrame(
-        norm_contribs, 
-        columns=factor_cols, 
+        contribs,
+        columns=factor_cols,
         index=channels["channel_name"]
-)
+    )
 
-    # Add total score column for easy sorting
+    # Add total channel score (so you can sort/filter later)
     score_map = dict(zip(channels["channel_name"], ch["score"]))
     contribs["normalized_total"] = contribs.index.map(score_map)
 
-    # Example: get top strengths and weaknesses for a channel
+    # Example helper: get top strengths & weaknesses (by % contribution)
     def top_strengths_weaknesses(channel_name, n=2):
         row = contribs.loc[channel_name, factor_cols]
         sorted_factors = row.sort_values(ascending=False)
@@ -270,11 +273,17 @@ if st.button("See my Top 3"):
         st.markdown("---")
         st.markdown("### 🚧 DEV ONLY: Contribution & Rack & Stack 🚧")
 
-        st.markdown("#### Contribution Breakdown")
-        st.dataframe(contribs)
+    # Show contribution breakdown as percentages
+    st.markdown("#### Contribution Breakdown (as %)")
+    contribs_pct = contribs.copy()
+    factor_cols_only = [c for c in contribs.columns if c.startswith("f_")]
 
-        st.markdown("#### All Channel Scores (Rack & Stack)")
-        st.dataframe(rackstack)
+    # Convert factor columns to percentages
+    contribs_pct[factor_cols_only] = (contribs_pct[factor_cols_only] * 100).round(1)
+    st.dataframe(contribs_pct)
+
+    st.markdown("#### All Channel Scores (Rack & Stack)")
+    st.dataframe(rackstack)
 
     # Debugging output removed for production
 # if debug_mode:
