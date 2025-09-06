@@ -35,17 +35,29 @@ def load_from_excel(xlsx_path: Path):
     if not xlsx_path.exists():
         st.error(f"Excel file not found:\n{xlsx_path}")
         st.stop()
+
+    # --- Load Weights ---
     try:
         weights = pd.read_excel(xlsx_path, sheet_name="Weights").rename(columns=lambda c: str(c).strip())
     except Exception as e:
         st.error(f"Could not read 'Weights' sheet: {e}")
         st.stop()
+
+    # --- Load Snippets (optional, already in your file) ---
     try:
         snippets = pd.read_excel(xlsx_path, sheet_name="Snippets").rename(columns=lambda c: str(c).strip())
     except Exception:
         snippets = pd.DataFrame(columns=["Revenue Stream","One-line Reason Template","Compass Chapter Link/Slug"])
 
-    # Build factors
+    # --- Load Factor metadata + Categories ---
+    try:
+        factor_meta = pd.read_excel(xlsx_path, sheet_name="Factors").rename(columns=lambda c: str(c).strip())
+        categories  = pd.read_excel(xlsx_path, sheet_name="Categories").rename(columns=lambda c: str(c).strip())
+    except Exception:
+        factor_meta = pd.DataFrame(columns=["factor_name","category_name","factor_description","left_label","right_label"])
+        categories  = pd.DataFrame(columns=["category_name","category_description"])
+
+    # --- Build factors base (from Weights first column) ---
     first_col = weights.columns[0]
     factors = weights[[first_col]].dropna().drop_duplicates().copy()
     factors.columns = ["factor_name"]
@@ -55,7 +67,11 @@ def load_from_excel(xlsx_path: Path):
     factors["max"] = 10
     factors["step"] = 1
 
-    # Build channels
+    # Merge in metadata from Factors sheet
+    if not factor_meta.empty:
+        factors = factors.merge(factor_meta, on="factor_name", how="left")
+
+    # --- Build channels ---
     w = weights.rename(columns={first_col: "factor"}).copy()
     channel_cols = [c for c in w.columns if c != "factor"]
     long = w.melt(id_vars=["factor"], value_vars=channel_cols,
@@ -87,7 +103,7 @@ def load_from_excel(xlsx_path: Path):
     factor_cols = [c for c in channels.columns if c.startswith("f_")]
     channels[factor_cols] = channels[factor_cols].fillna(0.0)
 
-    return factors, channels
+    return factors, categories, channels
 
 # -------------------------
 # APP STARTS
@@ -95,7 +111,7 @@ def load_from_excel(xlsx_path: Path):
 st.title("Revenue Stream Compass™ — Quick Match")
 st.caption("Rate your Field Factors to see your Top 3 revenue streams.")
 
-factors, channels = load_from_excel(XLSX)
+factors, categories, channels = load_from_excel(XLSX)
 
 # Safe default so any stray references won't crash before user clicks the button
 rackstack = pd.DataFrame(columns=["channel_name", "score"])
@@ -114,80 +130,52 @@ user_scores = {}
 
 st.subheader("Your Field Factor Self Assessment")
 
-# Define categories
-factor_categories = {
-    "CUSTOMER FACING SKILLS": ["Customer Service & Sales", "Marketing"],
-}
+# factors, categories, channels now come from load_from_excel
+for _, cat_row in categories.iterrows():
+    cat_name = cat_row["category_name"]
+    cat_desc = cat_row.get("category_description", "")
 
-# Category-level descriptions
-category_descriptions = {
-    "CUSTOMER FACING SKILLS": (
-        "How you connect with customers — and how often — can vary widely between different sales channels. "
-        "This section helps you reflect on your comfort and strengths when it comes to engaging with customers, "
-        "promoting your business, and making the sale."
-    )
-}
+    st.markdown(f"## {cat_name}")
+    if pd.notna(cat_desc) and str(cat_desc).strip():
+        st.markdown(f"*{cat_desc.strip()}*")
+        st.markdown("")
 
-# Factor-level descriptions
-factor_descriptions = {
-    "Customer Service & Sales": (
-        "How confident and experienced are you when it comes to engaging with customers — "
-        "answering questions, handling service issues, pitching your offerings, and closing a sale "
-        "(whether in person, by email, or over social media)?"
-    ),
-    "Marketing": (
-        "Do you have experience promoting your business through digital and print marketing? "
-        "This could include things like social media posts, email campaigns, flyers or other printed materials, "
-        "pitches to media outlets, writing captions, taking great photos, or running paid ads (like on Meta or Google) "
-        "to help increase visibility and drive sales."
-    ),
-}
+    # Filter factors belonging to this category
+    these_factors = factors[factors["category_name"] == cat_name]
 
-# Custom left/right labels for certain factors
-factor_labels = {
-    "Social Personality": ("Introverted", "Extroverted"),
-    "Stress and Risk Tolerance": ("Low", "High"),
-}
+    for i, row in these_factors.iterrows():
+        fid   = row["factor_id"]
+        fname = row["factor_name"]
 
-# Render sliders grouped by category
-for category, factor_list in factor_categories.items():
-    # Category header
-    st.markdown(f"## {category}")
-
-    # Optional category-level description (if you add those later)
-    if category in category_descriptions:
-        st.markdown(f"*{category_descriptions[category]}*")
-        st.markdown("")  # one blank line after category description
-
-    # Loop through factors
-    for i, factor_name in enumerate(factor_list):
-        match = factors[factors["factor_name"].str.strip() == factor_name]
-        if match.empty:
-            st.warning(f"⚠️ Factor '{factor_name}' not found in Excel.")
-            continue
-        factor_row = match.iloc[0]
-        fid = factor_row["factor_id"]
-
-        # Add extra spacing before factors *after* the first one
+        # spacing before factors after the first
         if i > 0:
             st.markdown("&nbsp;", unsafe_allow_html=True)
 
         # Factor name + description
-        st.markdown(f"**{factor_name}**: {factor_descriptions.get(factor_name, '')}")
-        
-# Weakness/Strength (or custom labels)
-        left_label, right_label = factor_labels.get(factor_name, ("Weakness", "Strength"))
+        fdesc = row.get("factor_description", "")
+        st.markdown(f"**{fname}**: {safe_text(fdesc)}")
+
+        # Custom labels, fallback to Weakness/Strength
+        left_label  = safe_text(row.get("left_label"))  or "Weakness"
+        right_label = safe_text(row.get("right_label")) or "Strength"
+
+        # Slider
+        vmin  = int(row.get("min", 0))
+        vmax  = int(row.get("max", 10))
+        vstep = int(row.get("step", 1))
+        vdef  = int((vmax + vmin) // 2)
 
         user_scores[fid] = st.slider(
-            factor_name,
-            min_value=int(factor_row["min"]),
-            max_value=int(factor_row["max"]),
-            value=int((factor_row["max"] + factor_row["min"]) // 2),
-            step=int(factor_row["step"]),
-            key=f"newslider_{fid}",
-            label_visibility="collapsed"  # keeps the name above, not duplicated
+            fname,
+            min_value=vmin,
+            max_value=vmax,
+            value=vdef,
+            step=vstep,
+            key=f"slider_{fid}",
+            label_visibility="collapsed"
         )
 
+        # Labels under slider
         st.markdown(
             f"<div style='display:flex; justify-content:space-between; margin-top:-8px;'>"
             f"<span style='font-size:0.8em; color:gray;'>{left_label}</span>"
@@ -195,50 +183,7 @@ for category, factor_list in factor_categories.items():
             "</div>",
             unsafe_allow_html=True
         )
-# =========================
-# >>> NEW BLOCK: render all remaining factors as simple sliders
-#     (inserted directly AFTER the loop above, BEFORE CALCULATE)
-# =========================
-_specials = set(name for lst in factor_categories.values() for name in lst)
 
-_all_factors = (
-    factors.loc[:, ["factor_name", "factor_id", "min", "max", "step"]]
-           .dropna(subset=["factor_name", "factor_id"])
-           .drop_duplicates(subset=["factor_id"])
-           .sort_values("factor_name")
-           .reset_index(drop=True)
-)
-
-with st.expander("Show all other Field Factors", expanded=True):
-    for _, _row in _all_factors.iterrows():
-        _fname = str(_row["factor_name"]).strip()
-        if _fname in _specials:
-            continue  # already shown above
-
-        _fid   = str(_row["factor_id"]).strip()
-        _vmin  = int(_row["min"])  if pd.notna(_row["min"])  else 0
-        _vmax  = int(_row["max"])  if pd.notna(_row["max"])  else 10
-        _vstep = int(_row["step"]) if pd.notna(_row["step"]) else 1
-        _vdef  = int((_vmax + _vmin) // 2)
-
-        st.markdown(f"**{_fname}**")
-        user_scores[_fid] = st.slider(
-            label=_fname,
-            min_value=_vmin,
-            max_value=_vmax,
-            value=_vdef,
-            step=_vstep,
-            key=f"slider_{_fid}",            # different key namespace from the fancy section
-            label_visibility="collapsed"
-        )
-
-        st.markdown(
-            "<div style='display:flex; justify-content:space-between; margin-top:-8px;'>"
-            "<span style='font-size:0.8em; color:gray;'>Weakness</span>"
-            "<span style='font-size:0.8em; color:gray;'>Strength</span>"
-            "</div>",
-            unsafe_allow_html=True
-        )
 # -------------------------
 # CALCULATE
 # -------------------------
