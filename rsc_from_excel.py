@@ -215,6 +215,37 @@ if st.button("See my Top 3"):
     ch = channels.copy()
     ch["score"] = np.divide(scores, max_scores, out=np.zeros_like(scores), where=max_scores != 0)
 
+    # --- Contribution Analysis ---
+    raw_contribs = channels[factor_cols].values * uw_aligned.values
+    max_contribs = channels[factor_cols].values * 10.0
+
+    # Normalize by factor importance (avoid divide by zero)
+    norm_contribs = np.divide(
+        raw_contribs, 
+        max_contribs, 
+        out=np.zeros_like(raw_contribs), 
+        where=max_contribs != 0
+    )
+
+    # Make a DataFrame of contributions per factor per channel
+    contribs = pd.DataFrame(
+        norm_contribs, 
+        columns=factor_cols, 
+        index=channels["channel_name"]
+)
+
+    # Add total score column for easy sorting
+    score_map = dict(zip(channels["channel_name"], ch["score"]))
+    contribs["normalized_total"] = contribs.index.map(score_map)
+
+    # Example: get top strengths and weaknesses for a channel
+    def top_strengths_weaknesses(channel_name, n=2):
+        row = contribs.loc[channel_name, factor_cols]
+        sorted_factors = row.sort_values(ascending=False)
+        strengths = sorted_factors.head(n).index.tolist()
+        weaknesses = sorted_factors.tail(n).index.tolist()
+        return strengths, weaknesses
+
     # Build Rack & Stack (all channels sorted by score, highest first)
     rackstack = (
         ch.loc[:, ["channel_name", "score"]]
@@ -241,11 +272,18 @@ if st.button("See my Top 3"):
             if link:
                 st.markdown(f"[Open Guidebook chapter]({link})")
 
-    # --- Then show Rack & Stack ---
-    st.markdown("---")
-    st.markdown("### All Channel Scores (Rack & Stack)")
-    st.dataframe(rackstack)
+    # 🚧 NOTE: Everything below is for internal dev/debug only.
+    # 🚧 Do NOT include this section in the free/lead magnet version.
 
+    if debug_mode:
+        st.markdown("---")
+        st.markdown("### 🚧 DEV ONLY: Contribution & Rack & Stack 🚧")
+
+        st.markdown("#### Contribution Breakdown")
+        st.dataframe(contribs)
+
+        st.markdown("#### All Channel Scores (Rack & Stack)")
+        st.dataframe(rackstack)
 
     # Debugging output removed for production
 # if debug_mode:
