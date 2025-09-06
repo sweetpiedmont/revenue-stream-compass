@@ -266,12 +266,12 @@ if st.button("See my Top 3"):
             if link:
                 st.markdown(f"[Open Guidebook chapter]({link})")
 
-    # 🚧 NOTE: Everything below is for internal dev/debug only.
-    # 🚧 Do NOT include this section in the free/lead magnet version.
+# 🚧 NOTE: Everything below is for internal dev/debug only.
+# 🚧 Do NOT include this section in the free/lead magnet version.
 
-    if debug_mode:
-        st.markdown("---")
-        st.markdown("### 🚧 DEV ONLY: Contribution & Rack & Stack 🚧")
+if debug_mode:
+    st.markdown("---")
+    st.markdown("### 🚧 DEV ONLY: Contribution & Rack & Stack 🚧")
 
     # Show contribution breakdown as percentages
     st.markdown("#### Contribution Breakdown (as %)")
@@ -280,6 +280,17 @@ if st.button("See my Top 3"):
 
     # Convert factor columns to percentages
     contribs_pct[factor_cols_only] = (contribs_pct[factor_cols_only] * 100).round(1)
+
+    # Rename factor columns back to human-friendly names
+    factor_name_map = {
+        f"f_{row['factor_id']}": row['factor_name']
+        for _, row in factors.iterrows()
+    }
+    contribs_pct = contribs_pct.rename(columns=factor_name_map)
+
+    # Convert normalized_total to %
+    contribs_pct["normalized_total"] = (contribs_pct["normalized_total"] * 100).round(1)
+
     st.dataframe(contribs_pct)
 
     st.markdown("#### All Channel Scores (Rack & Stack)")
