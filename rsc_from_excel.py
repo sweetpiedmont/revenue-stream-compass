@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 import re
+import requests #needed for posting to Zapier
 
 def safe_text(val):
     import pandas as pd
@@ -188,7 +189,7 @@ for _, cat_row in categories.iterrows():
         )
 
 # -------------------------
-# CALCULATE
+# CALCULATE SCORES
 # -------------------------
 st.markdown("---")
 if st.button("See my Top 3"):
@@ -266,6 +267,58 @@ if st.button("See my Top 3"):
             if link:
                 st.markdown(f"[Open Guidebook chapter]({link})")
 
+# -------------------------
+# CTA CREATION INSIDE STREAMLIT APP
+# -------------------------
+    # --- Build portable Top 3 list for CTA ---
+    top_3 = top3[["channel_name", "score"]].values.tolist()
+
+    # Show Top 3 list to user
+    st.header("🌟 Your Top 3 Revenue Stream Matches")
+
+    for channel, score in top_3:
+        st.write(f"**{channel}** — Score: {score:.1f}")
+
+    st.markdown("---")
+
+    # CTA email capture
+    st.subheader("📩 Want to Know *Why* These Are Your Top 3?")
+
+    st.markdown(
+        "Get a personalized explanation of your results delivered straight to your inbox — "
+        "including some of the key strengths and challenges behind your Top 3 matches."
+    )
+
+    with st.form("email_capture"):
+        first_name = st.text_input("First Name (required)")
+        last_name = st.text_input("Last Name (optional)")
+        farm_name = st.text_input("Farm Name (optional)")
+        email = st.text_input("Email Address (required)")
+
+        submitted = st.form_submit_button("Send Me My Report")
+
+        if submitted and email and first_name:
+            zapier_webhook_url = "https://hooks.zapier.com/hooks/catch/19897729/ud9fr8n/"
+            payload = {
+                "email": email,
+                "first_name": first_name,
+                "last_name": last_name,
+                "farm_name": farm_name,
+                "top3": [c for c, s in top_3]
+            }
+            try:
+                r = requests.post(zapier_webhook_url, json=payload)
+                if r.status_code == 200:
+                    st.success("✅ Thanks! Your personalized Top 3 explanation is on its way to your inbox.")
+                else:
+                    st.error("❌ Oops — something went wrong. Please try again.")
+            except Exception as e:
+                st.error("⚠️ Connection failed. Please try again later.")
+
+# -------------------------
+# DEBUGGING STUFF
+# -------------------------
+    
     # 🚧 NOTE: Everything below is for internal dev/debug only.
     # 🚧 Do NOT include this section in the free/lead magnet version.
 
