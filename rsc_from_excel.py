@@ -28,6 +28,36 @@ def safe_text(val):
         return ""
     return str(val).strip()
 
+def get_channel_narrative(channel_name, narratives, user_scores):
+    """
+    Build a narrative for one channel:
+    - 2 highest weighted factors = strengths
+    - 1 lowest weighted factor = weakness
+    """
+    df = narratives[(narratives["channel_name"] == channel_name) & (narratives["weight"] >= 4)].copy()
+    if df.empty:
+        return f"No narrative data available for {channel_name}."
+
+    # Map in user scores + weighted_score
+    df["user_score"] = df["factor_name"].map(user_scores)
+    df["weighted_score"] = df["user_score"] * df["weight"]
+
+    # Pick top 2 and bottom 1
+    strengths = df.sort_values("weighted_score", ascending=False).head(2)
+    weakness = df.sort_values("weighted_score", ascending=True).head(1)
+
+    s1 = strengths.iloc[0]
+    s2 = strengths.iloc[1]
+    w1 = weakness.iloc[0]
+
+    narrative = (
+        f"Because {s1['weighting_reason']}, {s1['strength_blurb']} "
+        f"Similarly, {s2['strength_blurb']} which matters because {s2['weighting_reason']} "
+        f"One challenge you may need to overcome is {w1['weakness_blurb']}, since {w1['weighting_reason']}."
+    )
+
+    return narrative
+
 st.set_page_config(page_title="Revenue Stream Compass — Top 3", page_icon="🌸", layout="centered")
 
 BASE = Path(__file__).resolve().parent
@@ -254,36 +284,6 @@ if st.session_state.get("show_results", False):
     )
     score_map = dict(zip(channels["channel_name"], ch["score"]))
     contribs["normalized_total"] = contribs.index.map(score_map)
-
-    # --- Narrative function (insert here) ---
-    def get_channel_narrative(channel_name, contribs, narratives, user_scores, used_factors):
-        row = contribs.loc[channel_name]
-        narr = narratives[narratives["channel_name"] == channel_name]
-        narr = narr[narr["weight"] >= 4]
-
-        df = pd.DataFrame({
-            "factor": row.index,
-            "contribution": row.values,
-            "user_score": [user_scores.get(f, 0) for f in row.index]
-        }).merge(narr, left_on="factor", right_on="factor_name", how="inner")
-
-        strengths = []
-        for _, subdf in df.sort_values("contribution", ascending=False).iterrows():
-            if subdf["factor"] not in used_factors:
-                s_text = strength_narrative(subdf["user_score"], subdf["factor_name"], subdf["strength_blurb"])
-                strengths.append(s_text)
-                used_factors.add(subdf["factor"])
-            if len(strengths) == 2:
-                break
-
-        weakest = df.sort_values("contribution", ascending=True).iloc[0]
-        w_text = weakness_narrative(weakest["user_score"], weakest["factor_name"], weakest["weakness_blurb"])
-
-        return {
-            "channel": channel_name,
-            "strengths": strengths,
-            "weakness": w_text
-        }
     
     def top_strengths_weaknesses(channel_name, n=2):
         row = contribs.loc[channel_name, factor_cols]
@@ -317,7 +317,16 @@ if st.session_state.get("show_results", False):
             link = safe_text(chan.get("compass_link"))
             if link:
                 st.markdown(f"[Open Guidebook chapter]({link})")
-
+            
+            # -------------------------
+            # TEMP: Narrative Preview in Streamlit
+            # (for testing/QA only — in production, these will go to email/PDF)
+            # -------------------------
+            
+            narrative_text = get_channel_narrative(r["channel_name"], narratives, user_scores)
+            st.markdown("#### Why this matches you")
+            st.write(narrative_text)
+    
     # --- Build portable Top 3 list for CTA ---
     top_3 = top3[["channel_name", "score"]].values.tolist()
 
@@ -360,52 +369,7 @@ if st.session_state.get("show_results", False):
 # testing minimal narrative block
 #------
 
-# --- DEV/TEST: Load narratives from Excel ---
-narratives = pd.read_excel(
-    "Extreme_Weighting_Scoring_Prototype_for_FormWise_REPAIRED.xlsx",
-    sheet_name="Narratives"
-)
 
-st.header("🧪 Narrative Test Block (DEV)")
-
-# Example Top 3 channel from scoring (hardcoded for now)
-top_channel = "Farmers Markets"
-
-st.subheader(f"Testing narratives for: {top_channel}")
-
-def build_channel_narrative(channel, narratives, user_scores):
-    """
-    Build a narrative paragraph for one channel:
-    - 2 strengths (highest scoring factors)
-    - 1 weakness (lowest scoring factor)
-    """
-    df = narratives[(narratives["channel_name"] == channel) & (narratives["weight"] >= 4)].copy()
-    df["user_score"] = df["factor_name"].map(user_scores)
-
-    strengths = df.sort_values("user_score", ascending=False).head(2)
-    weakness = df.sort_values("user_score", ascending=True).head(1)
-
-    if strengths.empty or weakness.empty:
-        return f"No narrative data available for {channel}."
-
-    s1 = strengths.iloc[0]
-    s2 = strengths.iloc[1]
-    w1 = weakness.iloc[0]
-
-    narrative = (
-        f"Because {s1['weighting_reason']}, {s1['strength_blurb']} "
-        f"Similarly, {s2['strength_blurb']} which is important because {s2['weighting_reason']} "
-        f"One challenge you may need to overcome is {w1['weakness_blurb']}, since {w1['weighting_reason']}."
-    )
-
-    return narrative
-
-st.write("Available channels:", narratives["channel_name"].unique())
-
-
-# --- DEV/TEST Narrative Output ---
-st.subheader(f"Testing narratives for: {top_channel}")
-st.write(build_channel_narrative(top_channel, narratives, user_scores))
 
 st.info("✅ This block is DEV-only. It won’t run in main until you merge it back.")
 
