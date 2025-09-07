@@ -93,8 +93,6 @@ def load_from_excel(xlsx_path: Path):
     factors["max"] = 10
     factors["step"] = 1
 
-    return weights, snippets, factor_meta, categories, narratives, factors
-
     # Merge in metadata from Factors sheet
     if not factor_meta.empty:
         factors = factors.merge(factor_meta, on="factor_name", how="left")
@@ -102,6 +100,8 @@ def load_from_excel(xlsx_path: Path):
     # Always regenerate factor_id from factor_name to avoid KeyErrors
     factors["factor_id"] = factors["factor_name"].map(slugify)
 
+    return weights, snippets, factor_meta, categories, narratives, factors
+    
     # --- Build channels ---
     w = weights.rename(columns={first_col: "factor"}).copy()
     channel_cols = [c for c in w.columns if c != "factor"]
