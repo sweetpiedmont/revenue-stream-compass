@@ -414,32 +414,32 @@ st.info("✅ This block is DEV-only. It won’t run in main until you merge it b
     # 🚧 NOTE: Everything below is for internal dev/debug only.
     # 🚧 Do NOT include this section in the free/lead magnet version.
 
-    if debug_mode:
-        st.markdown("---")
-        st.markdown("### 🚧 DEV ONLY: Contribution & Rack & Stack 🚧")
+    #if debug_mode:
+        #st.markdown("---")
+        #st.markdown("### 🚧 DEV ONLY: Contribution & Rack & Stack 🚧")
 
         # Show contribution breakdown as percentages
-        st.markdown("#### Contribution Breakdown (as %)")
-        contribs_pct = contribs.copy()
-        factor_cols_only = [c for c in contribs.columns if c.startswith("f_")]
+        #st.markdown("#### Contribution Breakdown (as %)")
+        #contribs_pct = contribs.copy()
+        #factor_cols_only = [c for c in contribs.columns if c.startswith("f_")]
 
         # Convert factor columns to percentages
-        contribs_pct[factor_cols_only] = (contribs_pct[factor_cols_only] * 100).round(1)
+        #contribs_pct[factor_cols_only] = (contribs_pct[factor_cols_only] * 100).round(1)
 
         # Rename factor columns back to human-friendly names
-        factor_name_map = {
-            f"f_{row['factor_id']}": row['factor_name']
-            for _, row in factors.iterrows()
-        }
-        contribs_pct = contribs_pct.rename(columns=factor_name_map)
+        #factor_name_map = {
+            #f"f_{row['factor_id']}": row['factor_name']
+            #for _, row in factors.iterrows()
+        #}
+        #contribs_pct = contribs_pct.rename(columns=factor_name_map)
 
         # Convert normalized_total to %
-        contribs_pct["normalized_total"] = (contribs_pct["normalized_total"] * 100).round(1)
+        c#ontribs_pct["normalized_total"] = (contribs_pct["normalized_total"] * 100).round(1)
 
-        st.dataframe(contribs_pct)
+        #st.dataframe(contribs_pct)
 
-        st.markdown("#### All Channel Scores (Rack & Stack)")
-        st.dataframe(rackstack)
+        #st.markdown("#### All Channel Scores (Rack & Stack)")
+        #st.dataframe(rackstack)
 
     # Debugging output removed for production
 # if debug_mode:
