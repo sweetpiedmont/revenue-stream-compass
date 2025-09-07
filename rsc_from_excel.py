@@ -369,22 +369,43 @@ narratives = pd.read_excel(
 st.header("🧪 Narrative Test Block (DEV)")
 
 # Example Top 3 channel from scoring (hardcoded for now)
-top_channel = "Farmers Market"
+top_channel = "Farmers Markets"
 
 st.subheader(f"Testing narratives for: {top_channel}")
 
-# Filter Narratives sheet
-subset = narratives[
-    (narratives["channel_name"] == top_channel) & 
-    (narratives["weight"] >= 4)
-]
+def build_channel_narrative(channel, narratives, user_scores):
+    """
+    Build a narrative paragraph for one channel:
+    - 2 strengths (highest scoring factors)
+    - 1 weakness (lowest scoring factor)
+    """
+    df = narratives[(narratives["channel_name"] == channel) & (narratives["weight"] >= 4)].copy()
+    df["user_score"] = df["factor_name"].map(user_scores)
 
-# Show first couple blurbs
-for _, row in subset.head(2).iterrows():
-    st.write(f"**Strength:** {row['strength_blurb']}")
-    st.write(f"**Weakness:** {row['weakness_blurb']}")
-    st.caption(f"Reason: {row['weighting_reason']}")
-    st.markdown("---")
+    strengths = df.sort_values("user_score", ascending=False).head(2)
+    weakness = df.sort_values("user_score", ascending=True).head(1)
+
+    if strengths.empty or weakness.empty:
+        return f"No narrative data available for {channel}."
+
+    s1 = strengths.iloc[0]
+    s2 = strengths.iloc[1]
+    w1 = weakness.iloc[0]
+
+    narrative = (
+        f"Because {s1['weighting_reason']}, {s1['strength_blurb']} "
+        f"Similarly, {s2['strength_blurb']} which is important because {s2['weighting_reason']} "
+        f"One challenge you may need to overcome is {w1['weakness_blurb']}, since {w1['weighting_reason']}."
+    )
+
+    return narrative
+
+st.write("Available channels:", narratives["channel_name"].unique())
+
+
+# --- DEV/TEST Narrative Output ---
+st.subheader(f"Testing narratives for: {top_channel}")
+st.write(build_channel_narrative(top_channel, narratives, user_scores))
 
 st.info("✅ This block is DEV-only. It won’t run in main until you merge it back.")
 
