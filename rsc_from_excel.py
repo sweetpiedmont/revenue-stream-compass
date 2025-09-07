@@ -140,7 +140,7 @@ def load_from_excel(xlsx_path: Path):
 st.title("Revenue Stream Compass™ — Quick Match")
 st.caption("Rate your Field Factors to see your Top 3 revenue streams.")
 
-weights, snippets, factor_meta, categories, narratives, factors, channels = load_from_excel(XLSX)
+factors, categories, channels = load_from_excel(XLSX)
 
 st.write("Narratives preview:", narratives.head())
 
