@@ -32,7 +32,7 @@ def get_channel_narrative(channel_name, narratives, user_scores):
     """
     Build a narrative for one channel:
     - 2 highest weighted factors = strengths
-    - 1 lowest weighted factor = weakness
+    - 1 lowest weighted factor (not already a strength) = weakness
     """
     df = narratives[(narratives["channel_name"] == channel_name) & (narratives["weight"] >= 4)].copy()
     if df.empty:
@@ -42,9 +42,18 @@ def get_channel_narrative(channel_name, narratives, user_scores):
     df["user_score"] = df["factor_name"].map(user_scores)
     df["weighted_score"] = df["user_score"] * df["weight"]
 
-    # Pick top 2 and bottom 1
+    # Pick top 2 strengths
     strengths = df.sort_values("weighted_score", ascending=False).head(2)
-    weakness = df.sort_values("weighted_score", ascending=True).head(1)
+
+    # Exclude those from weakness candidates
+    used_factors = strengths["factor_name"].tolist()
+    weakness_candidates = df[~df["factor_name"].isin(used_factors)]
+
+    if weakness_candidates.empty:
+        return "Not enough factors to generate a weakness."
+
+    # Pick bottom 1 from remaining
+    weakness = weakness_candidates.sort_values("weighted_score", ascending=True).head(1)
 
     s1 = strengths.iloc[0]
     s2 = strengths.iloc[1]
@@ -56,7 +65,7 @@ def get_channel_narrative(channel_name, narratives, user_scores):
         f"One challenge you may need to overcome is {w1['weakness_blurb']}. "
         f"This is because {w1['weighting_reason']}."
     )
-    
+
     return narrative
 
 st.set_page_config(page_title="Revenue Stream Compass — Top 3", page_icon="🌸", layout="centered")
