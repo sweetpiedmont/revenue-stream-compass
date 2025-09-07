@@ -100,7 +100,7 @@ def load_from_excel(xlsx_path: Path):
     # Always regenerate factor_id from factor_name to avoid KeyErrors
     factors["factor_id"] = factors["factor_name"].map(slugify)
 
-    return weights, snippets, factor_meta, categories, narratives, factors
+    return weights, snippets, factor_meta, categories, narratives, factors, channels
     
     # --- Build channels ---
     w = weights.rename(columns={first_col: "factor"}).copy()
@@ -142,7 +142,7 @@ def load_from_excel(xlsx_path: Path):
 st.title("Revenue Stream Compass™ — Quick Match")
 st.caption("Rate your Field Factors to see your Top 3 revenue streams.")
 
-weights, snippets, factor_meta, categories, narratives, factors = load_from_excel(XLSX)
+weights, snippets, factor_meta, categories, narratives, factors, channels = load_from_excel(XLSX)
 
 # Safe default so any stray references won't crash before user clicks the button
 rackstack = pd.DataFrame(columns=["channel_name", "score"])
