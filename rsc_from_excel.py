@@ -39,7 +39,8 @@ def get_channel_narrative(channel_name, narratives, user_scores):
         return f"No narrative data available for {channel_name}."
 
     # Map in user scores + weighted_score
-    df["user_score"] = df["factor_name"].map(user_scores)
+    df["factor_id"] = df["factor_name"].map(slugify)
+    df["user_score"] = df["factor_id"].map(lambda fid: user_scores.get(fid, 0))
     df["weighted_score"] = df["user_score"] * df["weight"]
 
     st.write("DEBUG DF for", channel_name,
