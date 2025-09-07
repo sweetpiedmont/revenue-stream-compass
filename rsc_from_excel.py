@@ -51,11 +51,12 @@ def get_channel_narrative(channel_name, narratives, user_scores):
     w1 = weakness.iloc[0]
 
     narrative = (
-        f"Because {s1['weighting_reason']}, {s1['strength_blurb']} "
-        f"Similarly, {s2['strength_blurb']} which matters because {s2['weighting_reason']} "
-        f"One challenge you may need to overcome is {w1['weakness_blurb']}, since {w1['weighting_reason']}."
+        f"Because {s1['weighting_reason']}, {s1['strength_blurb']}. "
+        f"Similarly, {s2['strength_blurb']}. This matters because {s2['weighting_reason']}. "
+        f"One challenge you may need to overcome is {w1['weakness_blurb']}. "
+        f"This is because {w1['weighting_reason']}."
     )
-
+    
     return narrative
 
 st.set_page_config(page_title="Revenue Stream Compass — Top 3", page_icon="🌸", layout="centered")
@@ -305,7 +306,7 @@ if st.session_state.get("show_results", False):
     for _, r in top3.iterrows():
         with st.container(border=True):
             st.markdown(f"### {safe_text(r['channel_name'])}")
-            st.markdown(f"**Score:** {r['score']:.2%}")
+            st.markdown(f"**Score:** {r['score']:.0%}")
 
             chan = ch[ch["channel_name"] == r["channel_name"]].iloc[0]
             tags = safe_text(chan.get("tags"))
@@ -317,15 +318,6 @@ if st.session_state.get("show_results", False):
             link = safe_text(chan.get("compass_link"))
             if link:
                 st.markdown(f"[Open Guidebook chapter]({link})")
-            
-            # -------------------------
-            # TEMP: Narrative Preview in Streamlit
-            # (for testing/QA only — in production, these will go to email/PDF)
-            # -------------------------
-            
-            narrative_text = get_channel_narrative(r["channel_name"], narratives, user_scores)
-            st.markdown("#### Why this matches you")
-            st.write(narrative_text)
     
     # --- Build portable Top 3 list for CTA ---
     top_3 = top3[["channel_name", "score"]].values.tolist()
@@ -365,32 +357,21 @@ if st.session_state.get("show_results", False):
             except Exception as e:
                 st.error(f"⚠️ Connection failed: {e}")
 
-# ----
-# testing minimal narrative block
-#------
-
-
-
 st.info("✅ This block is DEV-only. It won’t run in main until you merge it back.")
-
 
 # -------------------------
 # DEV/TEST OUTPUT (not shown in final lead magnet)
 # -------------------------
-#st.markdown("## 🔧 Developer/Test Output: Narrative Blurbs")
-#st.caption("This section is only for testing the new blurb logic. It will not appear in the final user-facing app.")
 
-#used_factors = set()
+    st.markdown("---")
+    st.header("🧪 DEV/QA Output: Top 3 with Narratives")
 
-#for _, r in top3.iterrows():
-    #channel = r["channel_name"]
-    #narrative = get_channel_narrative(channel, contribs, narratives, user_scores, used_factors)
-
-    #st.subheader(narrative["channel"])
-    #for s in narrative["strengths"]:
-        #st.write("🌟", s)
-    #st.write("⚠️", narrative["weakness"])
-
+    for _, r in top3.iterrows():
+        st.markdown(f"### {safe_text(r['channel_name'])}")
+        st.markdown(f"**Score:** {r['score']:.0%}")
+        narrative_text = get_channel_narrative(r["channel_name"], narratives, user_scores)
+        st.markdown("**Narrative:**")
+        st.write(narrative_text)
 
 # -------------------------
 # DEBUGGING STUFF
