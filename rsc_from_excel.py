@@ -162,7 +162,7 @@ def load_from_excel(xlsx_path: Path):
     factor_cols = [c for c in channels.columns if c.startswith("f_")]
     channels[factor_cols] = channels[factor_cols].fillna(0.0)
 
-    return factors, categories, channels
+    return factors, categories, channels, narratives
 
 # -------------------------
 # APP STARTS
@@ -170,7 +170,7 @@ def load_from_excel(xlsx_path: Path):
 st.title("Revenue Stream Compass™ — Quick Match")
 st.caption("Rate your Field Factors to see your Top 3 revenue streams.")
 
-factors, categories, channels = load_from_excel(XLSX)
+factors, categories, channels, narratives = load_from_excel(XLSX)
 
 # Safe default so any stray references won't crash before user clicks the button
 rackstack = pd.DataFrame(columns=["channel_name", "score"])
