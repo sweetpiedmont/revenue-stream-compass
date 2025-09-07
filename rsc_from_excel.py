@@ -73,6 +73,16 @@ def load_from_excel(xlsx_path: Path):
         factor_meta = pd.DataFrame(columns=["factor_name","category_name","factor_description","left_label","right_label"])
         categories  = pd.DataFrame(columns=["category_name","category_description"])
 
+    # --- Load Narratives ---
+    try:
+        narratives = pd.read_excel(
+            xlsx_path,
+            sheet_name="narratives"
+        ).rename(columns=lambda c: str(c).strip())
+    except Exception as e:
+        st.error(f"Could not read 'narratives' sheet: {e}")
+        narratives = pd.DataFrame(columns=["channel_name","factor_name","weight","strength_blurb","weakness_blurb"])
+
     # --- Build factors base (from Weights first column) ---
     first_col = weights.columns[0]
     factors = weights[[first_col]].dropna().drop_duplicates().copy()
@@ -82,6 +92,8 @@ def load_from_excel(xlsx_path: Path):
     factors["min"] = 0
     factors["max"] = 10
     factors["step"] = 1
+
+    return weights, snippets, factor_meta, categories, narratives, factors
 
     # Merge in metadata from Factors sheet
     if not factor_meta.empty:
