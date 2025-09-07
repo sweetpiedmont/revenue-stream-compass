@@ -33,20 +33,21 @@ def get_channel_narrative(channel_name, narratives, user_scores):
     Build a narrative for one channel:
     - 2 highest weighted factors = strengths
     - 1 lowest weighted factor (not already a strength) = weakness
+    Handles edge cases where all of a channel's scores are high or low.
     """
     df = narratives[(narratives["channel_name"] == channel_name) & (narratives["weight"] >= 4)].copy()
     if df.empty:
         return f"No narrative data available for {channel_name}."
 
-    # Map in user scores + weighted_score
+    # Map in user scores + weighted_score using factor_id
     df["factor_id"] = df["factor_name"].map(slugify)
     df["user_score"] = df["factor_id"].map(lambda fid: user_scores.get(fid, 0))
     df["weighted_score"] = df["user_score"] * df["weight"]
 
-    st.write("DEBUG DF for", channel_name,
-             df[["factor_name", "user_score", "weight", "weighted_score",
-                 "strength_blurb", "weakness_blurb", "weighting_reason"]])    
-    
+    # Edge case detection (per channel)
+    all_high = df["user_score"].min() >= 8
+    all_low = df["user_score"].max() <= 3
+
     # Pick top 2 strengths
     strengths = df.sort_values("weighted_score", ascending=False).head(2)
 
@@ -64,13 +65,33 @@ def get_channel_narrative(channel_name, narratives, user_scores):
     s2 = strengths.iloc[1]
     w1 = weakness.iloc[0]
 
+    # --- Edge case handling ---
+    if all_high:
+        # Channel-specific: all factors scored high
+        weakness_text = (
+            f"Even though your scores for {channel_name} are strong overall, "
+            f"{w1['factor_name']} still ranked lowest, so it’s worth keeping an eye on. "
+            f"{w1['weakness_blurb']}"
+        )
+    elif all_low:
+        # Channel-specific: all factors scored low
+        s1_text = f"Among your lower scores, {s1['factor_name']} still stood out as stronger. {s1['strength_blurb']}"
+        s2_text = f"Similarly, {s2['factor_name']} showed some relative promise. {s2['strength_blurb']}"
+        weakness_text = f"Your lowest-scoring area was {w1['factor_name']}, which could create challenges. {w1['weakness_blurb']}"
+        return f"{s1_text} {s2_text} {weakness_text}"
+    else:
+        # Normal case
+        weakness_text = (
+            f"One challenge you may need to overcome is {w1['weakness_blurb']}. "
+            f"This is because {w1['weighting_reason']}."
+        )
+
     narrative = (
         f"Because {s1['weighting_reason']}, {s1['strength_blurb']}. "
         f"Similarly, {s2['strength_blurb']}. This matters because {s2['weighting_reason']}. "
-        f"One challenge you may need to overcome is {w1['weakness_blurb']}. "
-        f"This is because {w1['weighting_reason']}."
+        f"{weakness_text}"
     )
-
+    
     return narrative
 
 st.set_page_config(page_title="Revenue Stream Compass — Top 3", page_icon="🌸", layout="centered")
