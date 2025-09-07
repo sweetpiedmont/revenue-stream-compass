@@ -363,15 +363,15 @@ st.info("✅ This block is DEV-only. It won’t run in main until you merge it b
 # DEV/TEST OUTPUT (not shown in final lead magnet)
 # -------------------------
 
-    st.markdown("---")
-    st.header("🧪 DEV/QA Output: Top 3 with Narratives")
+st.markdown("---")
+st.header("🧪 DEV/QA Output: Top 3 with Narratives")
 
-    for _, r in top3.iterrows():
-        st.markdown(f"### {safe_text(r['channel_name'])}")
-        st.markdown(f"**Score:** {r['score']:.0%}")
-        narrative_text = get_channel_narrative(r["channel_name"], narratives, user_scores)
-        st.markdown("**Narrative:**")
-        st.write(narrative_text)
+for _, r in top3.iterrows():
+    st.markdown(f"### {safe_text(r['channel_name'])}")
+    st.markdown(f"**Score:** {r['score']:.0%}")
+    narrative_text = get_channel_narrative(r["channel_name"], narratives, user_scores)
+    st.markdown("**Narrative:**")
+    st.write(narrative_text)
 
 # -------------------------
 # DEBUGGING STUFF
