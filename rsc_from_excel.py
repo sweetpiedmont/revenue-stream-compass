@@ -42,6 +42,10 @@ def get_channel_narrative(channel_name, narratives, user_scores):
     df["user_score"] = df["factor_name"].map(user_scores)
     df["weighted_score"] = df["user_score"] * df["weight"]
 
+    st.write("DEBUG DF for", channel_name,
+             df[["factor_name", "user_score", "weight", "weighted_score",
+                 "strength_blurb", "weakness_blurb", "weighting_reason"]])    
+    
     # Pick top 2 strengths
     strengths = df.sort_values("weighted_score", ascending=False).head(2)
 
