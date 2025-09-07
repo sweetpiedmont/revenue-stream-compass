@@ -434,7 +434,7 @@ st.info("✅ This block is DEV-only. It won’t run in main until you merge it b
         #contribs_pct = contribs_pct.rename(columns=factor_name_map)
 
         # Convert normalized_total to %
-        c#ontribs_pct["normalized_total"] = (contribs_pct["normalized_total"] * 100).round(1)
+        #contribs_pct["normalized_total"] = (contribs_pct["normalized_total"] * 100).round(1)
 
         #st.dataframe(contribs_pct)
 
