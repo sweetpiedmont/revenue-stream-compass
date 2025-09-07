@@ -77,10 +77,10 @@ def load_from_excel(xlsx_path: Path):
     try:
         narratives = pd.read_excel(
             xlsx_path,
-            sheet_name="narratives"
+            sheet_name="Narratives"
         ).rename(columns=lambda c: str(c).strip())
     except Exception as e:
-        st.error(f"Could not read 'narratives' sheet: {e}")
+        st.error(f"Could not read 'Narratives' sheet: {e}")
         narratives = pd.DataFrame(columns=["channel_name","factor_name","weight","strength_blurb","weakness_blurb"])
 
     # --- Build factors base (from Weights first column) ---
@@ -142,7 +142,7 @@ def load_from_excel(xlsx_path: Path):
 st.title("Revenue Stream Compass™ — Quick Match")
 st.caption("Rate your Field Factors to see your Top 3 revenue streams.")
 
-factors, categories, channels = load_from_excel(XLSX)
+weights, snippets, factor_meta, categories, narratives, factors = load_from_excel(XLSX)
 
 # Safe default so any stray references won't crash before user clicks the button
 rackstack = pd.DataFrame(columns=["channel_name", "score"])
