@@ -392,19 +392,19 @@ st.info("✅ This block is DEV-only. It won’t run in main until you merge it b
 # -------------------------
 # DEV/TEST OUTPUT (not shown in final lead magnet)
 # -------------------------
-st.markdown("## 🔧 Developer/Test Output: Narrative Blurbs")
-st.caption("This section is only for testing the new blurb logic. It will not appear in the final user-facing app.")
+#st.markdown("## 🔧 Developer/Test Output: Narrative Blurbs")
+#st.caption("This section is only for testing the new blurb logic. It will not appear in the final user-facing app.")
 
-used_factors = set()
+#used_factors = set()
 
-for _, r in top3.iterrows():
-    channel = r["channel_name"]
-    narrative = get_channel_narrative(channel, contribs, narratives, user_scores, used_factors)
+#for _, r in top3.iterrows():
+    #channel = r["channel_name"]
+    #narrative = get_channel_narrative(channel, contribs, narratives, user_scores, used_factors)
 
-    st.subheader(narrative["channel"])
-    for s in narrative["strengths"]:
-        st.write("🌟", s)
-    st.write("⚠️", narrative["weakness"])
+    #st.subheader(narrative["channel"])
+    #for s in narrative["strengths"]:
+        #st.write("🌟", s)
+    #st.write("⚠️", narrative["weakness"])
 
 
 # -------------------------
