@@ -5,8 +5,23 @@ from pathlib import Path
 import re
 import requests #needed for posting to Zapier
 
+def strength_narrative(score, factor, base_blurb):
+    if score >= 7:
+        return f"Your strong {factor} makes this stream a natural fit. {base_blurb}"
+    elif score >= 4:
+        return f"Your relative comfort with {factor} helps here. {base_blurb}"
+    else:
+        return f"Among the traits that matter for this stream, {factor} was one of your higher areas — though it may still need development. {base_blurb}"
+
+def weakness_narrative(score, factor, base_blurb):
+    if score <= 3:
+        return f"Your low score in {factor} could make this stream more challenging. {base_blurb}"
+    elif score <= 6:
+        return f"{factor} may not be a major gap, but it’s an area to watch. {base_blurb}"
+    else:
+        return f"Even though {factor} is relatively strong overall, it ranked lowest here — so it’s worth attention. {base_blurb}"
+
 def safe_text(val):
-    import pandas as pd
     if val is None:
         return ""
     if isinstance(val, float) and pd.isna(val):
@@ -230,6 +245,36 @@ if st.session_state.get("show_results", False):
     score_map = dict(zip(channels["channel_name"], ch["score"]))
     contribs["normalized_total"] = contribs.index.map(score_map)
 
+    # --- Narrative function (insert here) ---
+    def get_channel_narrative(channel_name, contribs, narratives, user_scores, used_factors):
+        row = contribs.loc[channel_name]
+        narr = narratives[narratives["channel_name"] == channel_name]
+        narr = narr[narr["weight"] >= 4]
+
+        df = pd.DataFrame({
+            "factor": row.index,
+            "contribution": row.values,
+            "user_score": [user_scores.get(f, 0) for f in row.index]
+        }).merge(narr, left_on="factor", right_on="factor_name", how="inner")
+
+        strengths = []
+        for _, subdf in df.sort_values("contribution", ascending=False).iterrows():
+            if subdf["factor"] not in used_factors:
+                s_text = strength_narrative(subdf["user_score"], subdf["factor_name"], subdf["strength_blurb"])
+                strengths.append(s_text)
+                used_factors.add(subdf["factor"])
+            if len(strengths) == 2:
+                break
+
+        weakest = df.sort_values("contribution", ascending=True).iloc[0]
+        w_text = weakness_narrative(weakest["user_score"], weakest["factor_name"], weakest["weakness_blurb"])
+
+        return {
+            "channel": channel_name,
+            "strengths": strengths,
+            "weakness": w_text
+        }
+    
     def top_strengths_weaknesses(channel_name, n=2):
         row = contribs.loc[channel_name, factor_cols]
         sorted_factors = row.sort_values(ascending=False)
@@ -300,7 +345,25 @@ if st.session_state.get("show_results", False):
                     st.error(f"❌ Oops — something went wrong. Status {r.status_code}")
             except Exception as e:
                 st.error(f"⚠️ Connection failed: {e}")
-                
+
+# -------------------------
+# DEV/TEST OUTPUT (not shown in final lead magnet)
+# -------------------------
+        st.markdown("## 🔧 Developer/Test Output: Narrative Blurbs")
+        st.caption("This section is only for testing the new blurb logic. It will not appear in the final user-facing app.")
+
+        used_factors = set()
+
+        for _, r in top3.iterrows():
+            channel = r["channel_name"]
+            narrative = get_channel_narrative(channel, contribs, narratives, user_scores, used_factors)
+
+            st.subheader(narrative["channel"])
+            for s in narrative["strengths"]:
+                st.write("🌟", s)
+            st.write("⚠️", narrative["weakness"])
+
+
 # -------------------------
 # DEBUGGING STUFF
 # -------------------------
