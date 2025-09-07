@@ -369,7 +369,7 @@ narratives = pd.read_excel(
 st.header("🧪 Narrative Test Block (DEV)")
 
 # Example Top 3 channel from scoring (hardcoded for now)
-top_channel = "Farmers Markets"
+top_channel = "Farmers Market"
 
 st.subheader(f"Testing narratives for: {top_channel}")
 
