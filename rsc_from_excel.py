@@ -356,6 +356,39 @@ if st.session_state.get("show_results", False):
             except Exception as e:
                 st.error(f"⚠️ Connection failed: {e}")
 
+# ----
+# testing minimal narrative block
+#------
+
+# --- DEV/TEST: Load narratives from Excel ---
+narratives = pd.read_excel(
+    "Extreme_Weighting_Scoring_Prototype_for_FormWise_REPAIRED.xlsx",
+    sheet_name="Narratives"
+)
+
+st.header("🧪 Narrative Test Block (DEV)")
+
+# Example Top 3 channel from scoring (hardcoded for now)
+top_channel = "Farmers Market"
+
+st.subheader(f"Testing narratives for: {top_channel}")
+
+# Filter Narratives sheet
+subset = narratives[
+    (narratives["channel_name"] == top_channel) & 
+    (narratives["weight"] >= 4)
+]
+
+# Show first couple blurbs
+for _, row in subset.head(2).iterrows():
+    st.write(f"**Strength:** {row['strength_blurb']}")
+    st.write(f"**Weakness:** {row['weakness_blurb']}")
+    st.caption(f"Reason: {row['weighting_reason']}")
+    st.markdown("---")
+
+st.info("✅ This block is DEV-only. It won’t run in main until you merge it back.")
+
+
 # -------------------------
 # DEV/TEST OUTPUT (not shown in final lead magnet)
 # -------------------------
