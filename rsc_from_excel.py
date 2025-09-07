@@ -366,21 +366,21 @@ if st.session_state.get("show_results", False):
             except Exception as e:
                 st.error(f"⚠️ Connection failed: {e}")
 
-st.info("✅ This block is DEV-only. It won’t run in main until you merge it back.")
+    st.info("✅ This block is DEV-only. It won’t run in main until you merge it back.")
 
-# -------------------------
-# DEV/TEST OUTPUT (not shown in final lead magnet)
-# -------------------------
+    # -------------------------
+    # DEV/TEST OUTPUT (not shown in final lead magnet)
+    # -------------------------
 
-st.markdown("---")
-st.header("🧪 DEV/QA Output: Top 3 with Narratives")
+    st.markdown("---")
+    st.header("🧪 DEV/QA Output: Top 3 with Narratives")
 
-for _, r in top3.iterrows():
-    st.markdown(f"### {safe_text(r['channel_name'])}")
-    st.markdown(f"**Score:** {r['score']:.0%}")
-    narrative_text = get_channel_narrative(r["channel_name"], narratives, user_scores)
-    st.markdown("**Narrative:**")
-    st.write(narrative_text)
+    for _, r in top3.iterrows():
+        st.markdown(f"### {safe_text(r['channel_name'])}")
+        st.markdown(f"**Score:** {r['score']:.0%}")
+        narrative_text = get_channel_narrative(r["channel_name"], narratives, user_scores)
+        st.markdown("**Narrative:**")
+        st.write(narrative_text)
 
 # -------------------------
 # DEBUGGING STUFF
