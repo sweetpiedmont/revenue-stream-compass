@@ -99,8 +99,6 @@ def load_from_excel(xlsx_path: Path):
 
     # Always regenerate factor_id from factor_name to avoid KeyErrors
     factors["factor_id"] = factors["factor_name"].map(slugify)
-
-    return weights, snippets, factor_meta, categories, narratives, factors, channels
     
     # --- Build channels ---
     w = weights.rename(columns={first_col: "factor"}).copy()
