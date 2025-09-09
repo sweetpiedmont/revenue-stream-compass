@@ -217,16 +217,19 @@ def test_api():
 
 def generate_channel_blurb(channel, strengths, weakness, reasons):
     prompt = f"""
-    Write a short explanation (3 sentences) about why this revenue stream is a fit.
+    Write a short, encouraging explanation (3–4 sentences) about why this revenue stream is a fit
+    for a flower farmer, based on their unique strengths and challenges.
 
     - Channel: {channel}
     - Strength 1: {strengths[0]} (Reason: {reasons[0]})
     - Strength 2: {strengths[1]} (Reason: {reasons[1]})
     - Weakness: {weakness} (Reason: {reasons[2]})
 
-    Use this structure:
-    Because [reason1], your [strength1]. Similarly, [strength2], which is important because [reason2]. 
-    One challenge you may need to overcome is [weakness], since [reasonW].
+    Guidelines:
+    - Use "you" language so the farmer feels seen and recognized.
+    - Emphasize that their strengths make them well-suited to this channel.
+    - Mention the weakness gently as something to be mindful of, not as a harsh criticism.
+    - Keep the tone warm, supportive, and professional.
     """
 
     response = client.responses.create(
