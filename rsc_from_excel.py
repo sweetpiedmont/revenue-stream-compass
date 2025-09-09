@@ -447,8 +447,8 @@ if st.session_state.get("show_results", False):
             "market times are fixed and require presence"
         ]
 
-    blurb = generate_channel_blurb(channel, strengths, weakness, reasons)
-    st.write(blurb)
+        blurb = generate_channel_blurb(channel, strengths, weakness, reasons)
+        st.write(blurb)
     
     st.markdown("---")
     st.header("🧪 DEV/QA Output: Top 3 with Narratives")
