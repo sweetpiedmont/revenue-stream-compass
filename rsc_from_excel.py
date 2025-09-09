@@ -69,10 +69,22 @@ def get_channel_narrative(channel_name, narratives, user_scores):
     # --- Edge case handling ---
     if all_low:
         # ... build gentle reasons ...
+        strengths_list = [s1["factor_name"], s2["factor_name"]]
+        reasons = [
+            f"Among your lower scores, {s1['factor_name']} still stood out as relatively stronger. {s1['strength_blurb']}",
+            f"Similarly, {s2['factor_name']} showed some promise. {s2['strength_blurb']}",
+            f"Your lowest area was {w1['factor_name']}, which could create challenges. {w1['weakness_blurb']}"
+        ]
         return generate_channel_blurb(channel_name, strengths_list, w1["factor_name"], reasons)
 
     elif all_high:
         # ... build softened reasons ...
+        strengths_list = [s1["factor_name"], s2["factor_name"]]
+        reasons = [
+            s1["strength_blurb"],
+            s2["strength_blurb"],
+        f"Even though your scores for {channel_name} are strong overall, {w1['factor_name']} still ranked lowest. {w1['weakness_blurb']}"
+        ]
         return generate_channel_blurb(channel_name, strengths_list, w1["factor_name"], reasons)
 
     else:
