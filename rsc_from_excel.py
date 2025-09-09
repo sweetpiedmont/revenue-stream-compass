@@ -435,15 +435,15 @@ if st.session_state.get("show_results", False):
 if st.button("Test AI"):
     st.write(test_api())
 
-#st.markdown("---")
-#st.header("🌟 Your Top 3 Revenue Streams")
+st.markdown("---")
+st.header("🌟 Your Top 3 Revenue Streams")
 
-#for _, r in top3.iterrows():
-    #channel = r["channel_name"]
-    #blurb = get_channel_narrative(channel, narratives, user_scores)
-    #st.markdown(f"### {safe_text(channel)}")
-    #st.markdown(f"**Score:** {r['score']:.0%}")
-    #st.write(blurb)
+for _, r in top3.iterrows():
+    channel = r["channel_name"]
+    blurb = get_channel_narrative(channel, narratives, user_scores)
+    st.markdown(f"### {safe_text(channel)}")
+    st.markdown(f"**Score:** {r['score']:.0%}")
+    st.write(blurb)
 
 # -------------------------
 # DEBUGGING STUFF
