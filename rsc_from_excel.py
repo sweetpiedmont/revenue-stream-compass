@@ -438,14 +438,14 @@ if st.session_state.get("show_results", False):
         st.write(test_api())
 
     if st.button("Generate Example Blurb"):
-    channel = "Farmers Markets"
-    strengths = ["Strong customer service", "High community engagement"]
-    weakness = "Limited scheduling flexibility"
-    reasons = [
-        "markets are built on direct interactions",
-        "markets thrive on loyal local audiences",
-        "market times are fixed and require presence"
-    ]
+        channel = "Farmers Markets"
+        strengths = ["Strong customer service", "High community engagement"]
+        weakness = "Limited scheduling flexibility"
+        reasons = [
+            "markets are built on direct interactions",
+            "markets thrive on loyal local audiences",
+            "market times are fixed and require presence"
+        ]
 
     blurb = generate_channel_blurb(channel, strengths, weakness, reasons)
     st.write(blurb)
