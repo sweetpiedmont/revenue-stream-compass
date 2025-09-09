@@ -215,6 +215,27 @@ def test_api():
     )
     return response.output_text
 
+def generate_channel_blurb(channel, strengths, weakness, reasons):
+    prompt = f"""
+    Write a short explanation (3 sentences) about why this revenue stream is a fit.
+
+    - Channel: {channel}
+    - Strength 1: {strengths[0]} (Reason: {reasons[0]})
+    - Strength 2: {strengths[1]} (Reason: {reasons[1]})
+    - Weakness: {weakness} (Reason: {reasons[2]})
+
+    Use this structure:
+    Because [reason1], your [strength1]. Similarly, [strength2], which is important because [reason2]. 
+    One challenge you may need to overcome is [weakness], since [reasonW].
+    """
+
+    response = client.responses.create(
+        model="gpt-4.1-mini",
+        input=prompt
+    )
+
+    return response.output_text
+
 # -------------------------
 # APP STARTS
 # -------------------------
@@ -416,6 +437,19 @@ if st.session_state.get("show_results", False):
     if st.button("Test AI"):
         st.write(test_api())
 
+    if st.button("Generate Example Blurb"):
+    channel = "Farmers Markets"
+    strengths = ["Strong customer service", "High community engagement"]
+    weakness = "Limited scheduling flexibility"
+    reasons = [
+        "markets are built on direct interactions",
+        "markets thrive on loyal local audiences",
+        "market times are fixed and require presence"
+    ]
+
+    blurb = generate_channel_blurb(channel, strengths, weakness, reasons)
+    st.write(blurb)
+    
     st.markdown("---")
     st.header("🧪 DEV/QA Output: Top 3 with Narratives")
 
