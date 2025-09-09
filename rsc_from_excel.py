@@ -395,7 +395,7 @@ if st.session_state.get("show_results", False):
     st.subheader("📩 Want to Know *WHY* these are your Top 5 *AND* see how you stack up against all 18 potential revenue streams?")
     st.markdown(
         "Get a personalized explanation of your results delivered straight to your inbox — "
-        "including some of the key strengths and challenges behind your Top 5 matches. We'll also -"
+        "including some of the key strengths and challenges behind your Top 5 matches. We'll also "
         "give you your scores for all 18 possible revenue streams."
     )
 
