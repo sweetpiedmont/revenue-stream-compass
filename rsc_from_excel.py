@@ -13,21 +13,21 @@ load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
-def strength_narrative(score, factor, base_blurb):
-    if score >= 7:
-        return f"Your strong {factor} makes this stream a natural fit. {base_blurb}"
-    elif score >= 4:
-        return f"Your relative comfort with {factor} helps here. {base_blurb}"
-    else:
-        return f"Among the traits that matter for this stream, {factor} was one of your higher areas — though it may still need development. {base_blurb}"
+# def strength_narrative(score, factor, base_blurb):
+    #if score >= 7:
+        #return f"Your strong {factor} makes this stream a natural fit. {base_blurb}"
+    #elif score >= 4:
+        #return f"Your relative comfort with {factor} helps here. {base_blurb}"
+    #else:
+        #return f"Among the traits that matter for this stream, {factor} was one of your higher areas — though it may still need development. {base_blurb}"
 
-def weakness_narrative(score, factor, base_blurb):
-    if score <= 3:
-        return f"Your low score in {factor} could make this stream more challenging. {base_blurb}"
-    elif score <= 6:
-        return f"{factor} may not be a major gap, but it’s an area to watch. {base_blurb}"
-    else:
-        return f"Even though {factor} is relatively strong overall, it ranked lowest here — so it’s worth attention. {base_blurb}"
+#def weakness_narrative(score, factor, base_blurb):
+    #if score <= 3:
+        #return f"Your low score in {factor} could make this stream more challenging. {base_blurb}"
+    #elif score <= 6:
+        #return f"{factor} may not be a major gap, but it’s an area to watch. {base_blurb}"
+    #else:
+        #return f"Even though {factor} is relatively strong overall, it ranked lowest here — so it’s worth attention. {base_blurb}"
 
 def safe_text(val):
     if val is None:
@@ -38,10 +38,8 @@ def safe_text(val):
 
 def get_channel_narrative(channel_name, narratives, user_scores):
     """
-    Build a narrative for one channel:
-    - 2 highest weighted factors = strengths
-    - 1 lowest weighted factor (not already a strength) = weakness
-    Handles edge cases where all of a channel's scores are high or low.
+    Select top 2 strengths and 1 weakness for this channel,
+    then feed them into the AI blurb generator.
     """
     df = narratives[(narratives["channel_name"] == channel_name) & (narratives["weight"] >= 4)].copy()
     if df.empty:
@@ -56,51 +54,36 @@ def get_channel_narrative(channel_name, narratives, user_scores):
     all_high = df["user_score"].min() >= 8
     all_low = df["user_score"].max() <= 3
 
-    # Pick top 2 strengths
+    # Select top 2 strengths
     strengths = df.sort_values("weighted_score", ascending=False).head(2)
-
-    # Exclude those from weakness candidates
     used_factors = strengths["factor_name"].tolist()
-    weakness_candidates = df[~df["factor_name"].isin(used_factors)]
 
+    # Select 1 weakest factor (not already used)
+    weakness_candidates = df[~df["factor_name"].isin(used_factors)]
     if weakness_candidates.empty:
         return "Not enough factors to generate a weakness."
-
-    # Pick bottom 1 from remaining
     weakness = weakness_candidates.sort_values("weighted_score", ascending=True).head(1)
 
-    s1 = strengths.iloc[0]
-    s2 = strengths.iloc[1]
-    w1 = weakness.iloc[0]
+    s1, s2, w1 = strengths.iloc[0], strengths.iloc[1], weakness.iloc[0]
 
     # --- Edge case handling ---
-    if all_high:
-        # Channel-specific: all factors scored high
-        weakness_text = (
-            f"Even though your scores for {channel_name} are strong overall, "
-            f"{w1['factor_name']} still ranked lowest, so it’s worth keeping an eye on. "
-            f"{w1['weakness_blurb']}"
-        )
-    elif all_low:
-        # Channel-specific: all factors scored low
-        s1_text = f"Among your lower scores, {s1['factor_name']} still stood out as stronger. {s1['strength_blurb']}"
-        s2_text = f"Similarly, {s2['factor_name']} showed some relative promise. {s2['strength_blurb']}"
-        weakness_text = f"Your lowest-scoring area was {w1['factor_name']}, which could create challenges. {w1['weakness_blurb']}"
-        return f"{s1_text} {s2_text} {weakness_text}"
-    else:
-        # Normal case
-        weakness_text = (
-            f"One challenge you may need to overcome is {w1['weakness_blurb']}. "
-            f"This is because {w1['weighting_reason']}."
-        )
+    if all_low:
+        # ... build gentle reasons ...
+        return generate_channel_blurb(channel_name, strengths_list, w1["factor_name"], reasons)
 
-    narrative = (
-        f"Because {s1['weighting_reason']}, {s1['strength_blurb']}. "
-        f"Similarly, {s2['strength_blurb']}. This matters because {s2['weighting_reason']}. "
-        f"{weakness_text}"
-    )
-    
-    return narrative
+    elif all_high:
+        # ... build softened reasons ...
+        return generate_channel_blurb(channel_name, strengths_list, w1["factor_name"], reasons)
+
+    else:
+     # Normal case
+        strengths_list = [s1["factor_name"], s2["factor_name"]]
+        reasons = [
+            s1["weighting_reason"],
+            s2["weighting_reason"],
+            f"{w1['factor_name']} matters here because {w1['weighting_reason']}"
+        ]
+        return generate_channel_blurb(channel_name, strengths_list, w1["factor_name"], reason
 
 st.set_page_config(page_title="Revenue Stream Compass — Top 3", page_icon="🌸", layout="centered")
 
@@ -444,22 +427,11 @@ st.markdown("---")
 st.header("🌟 Your Top 3 Revenue Streams")
 
 for _, r in top3.iterrows():
-    channel = r['channel_name']
-    # Temporary placeholders until Excel is hooked in
-    strengths = ["Strong customer service", "High community engagement"]
-    weakness = "Limited scheduling flexibility"
-    reasons = [
-        "markets are built on direct interactions",
-        "markets thrive on loyal local audiences",
-        "market times are fixed and require presence"
-    ]
-
-    blurb = generate_channel_blurb(channel, strengths, weakness, reasons)
-
+    channel = r["channel_name"]
+    blurb = get_channel_narrative(channel, narratives, user_scores)
     st.markdown(f"### {safe_text(channel)}")
     st.markdown(f"**Score:** {r['score']:.0%}")
     st.write(blurb)
-
 
 # -------------------------
 # DEBUGGING STUFF
