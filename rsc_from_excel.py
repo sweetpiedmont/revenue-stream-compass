@@ -427,7 +427,7 @@ if st.session_state.get("show_results", False):
             except Exception as e:
                 st.error(f"⚠️ Connection failed: {e}")
 
-    st.info("✅ This block is DEV-only. It won’t run in main until you merge it back.")
+    st.info("✅ This block is DEV-only. This info will be put into a personalized email.")
 
 # -------------------------
 # DEV/TEST OUTPUT (not shown in final lead magnet)
@@ -446,6 +446,14 @@ if 'top5' in locals() and not top5.empty:
         st.markdown(f"### {safe_text(channel)}")
         st.markdown(f"**Score:** {r['score']:.0%}")
         st.write(blurb)
+        
+    # --- Full Rack & Stack (all channels, sorted) ---
+    st.markdown("---")
+    st.subheader("📊 Full Rack & Stack (All Channels)")
+
+    rackstack_display = rackstack.copy()
+    rackstack_display["Score"] = (rackstack_display["score"] * 100).round(1).astype(str) + "%"
+    st.dataframe(rackstack_display[["channel_name", "Score"]])
 else:
     st.info("👉 Click **See my Top 5** above to generate your personalized results.")
 
