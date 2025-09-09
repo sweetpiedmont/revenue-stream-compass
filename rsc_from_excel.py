@@ -221,10 +221,11 @@ def generate_channel_blurb(channel, strengths, weakness, reasons):
     - Weakness: {weakness} → {reasons[2]}
 
     Guidelines:
-    - Use the blurbs and reasons directly — do not ignore or generalize them.
+    - Always speak directly to the farmer using "you" and "your" language.
+    - Do not use "the farmer" or "a flower farmer" phrasing.- Use the blurbs and reasons directly — do not ignore or generalize them.
     - Use an authoritative, specific tone (avoid fluff).
     - Explain how the strengths lead to concrete outcomes (e.g., loyal buyers, upselling, efficiency).
-    - Present the weakness clearly as a challenge to mitigate or plan for.
+    - Present the weakness clearly as a challenge to mitigate or plan for, but not making it sound too dire.
     """
 
     response = client.responses.create(
