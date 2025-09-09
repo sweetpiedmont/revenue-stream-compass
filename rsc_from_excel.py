@@ -203,12 +203,12 @@ def load_from_excel(xlsx_path: Path):
 
     return factors, categories, channels, narratives
 
-def test_api():
-    response = client.responses.create(
-        model="gpt-4.1-mini",
-        input="Say hello to Sharon in one short sentence."
-    )
-    return response.output_text
+#def test_api():
+    #response = client.responses.create(
+       # model="gpt-4.1-mini",
+        #input="Say hello to Sharon in one short sentence."
+    #)
+    #return response.output_text
 
 def generate_channel_blurb(channel, strengths, weakness, reasons):
     prompt = f"""
@@ -371,7 +371,7 @@ if st.session_state.get("show_results", False):
 
     # --- Show Top 5 ---
     top5 = rackstack.head(5)
-    st.subheader("Top 5 Matches")
+    st.subheader("Your Top 5 Matches")
     for _, r in top5.iterrows():
         with st.container(border=True):
             st.markdown(f"### {safe_text(r['channel_name'])}")
