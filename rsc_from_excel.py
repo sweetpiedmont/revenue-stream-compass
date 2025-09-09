@@ -97,7 +97,7 @@ def get_channel_narrative(channel_name, narratives, user_scores):
         ]
         return generate_channel_blurb(channel_name, strengths_list, w1["factor_name"], reasons)
 
-st.set_page_config(page_title="Revenue Stream Compass — Top 3", page_icon="🌸", layout="centered")
+st.set_page_config(page_title="Revenue Stream Compass — Top 5", page_icon="🌸", layout="centered")
 
 BASE = Path(__file__).resolve().parent
 XLSX = BASE / "Extreme_Weighting_Scoring_Prototype_for_FormWise_REPAIRED.xlsx"
@@ -238,7 +238,7 @@ def generate_channel_blurb(channel, strengths, weakness, reasons):
 # APP STARTS
 # -------------------------
 st.title("Revenue Stream Compass™ — Quick Match")
-st.caption("Rate your Field Factors to see your Top 3 revenue streams.")
+st.caption("Rate your Field Factors to see your Top 5 revenue streams.")
 
 factors, categories, channels, narratives = load_from_excel(XLSX)
 
@@ -319,7 +319,7 @@ for _, cat_row in categories.iterrows():
 st.markdown("---")
 
 # Button sets a flag in session_state
-if st.button("See my Top 3"):
+if st.button("See my Top 5"):
     st.session_state.show_results = True
 
 # Only run calculations if flag is set
@@ -369,10 +369,10 @@ if st.session_state.get("show_results", False):
           .reset_index(drop=True)
     )
 
-    # --- Show Top 3 ---
-    top3 = rackstack.head(3)
-    st.subheader("Top 3 Matches")
-    for _, r in top3.iterrows():
+    # --- Show Top 5 ---
+    top5 = rackstack.head(5)
+    st.subheader("Top 5 Matches")
+    for _, r in top5.iterrows():
         with st.container(border=True):
             st.markdown(f"### {safe_text(r['channel_name'])}")
             st.markdown(f"**Score:** {r['score']:.0%}")
@@ -388,14 +388,15 @@ if st.session_state.get("show_results", False):
             if link:
                 st.markdown(f"[Open Guidebook chapter]({link})")
     
-    # --- Build portable Top 3 list for CTA ---
-    top_3 = top3[["channel_name", "score"]].values.tolist()
+    # --- Build portable Top 5 list for CTA ---
+    top_5 = top5[["channel_name", "score"]].values.tolist()
 
     st.markdown("---")
-    st.subheader("📩 Want to Know *Why* These Are Your Top 3?")
+    st.subheader("📩 Want to Know *WHY* these are your Top 5 *AND* see how you stack up against all 18 potential revenue streams?")
     st.markdown(
         "Get a personalized explanation of your results delivered straight to your inbox — "
-        "including some of the key strengths and challenges behind your Top 3 matches."
+        "including some of the key strengths and challenges behind your Top 5 matches. We'll also -"
+        "give you your scores for all 18 possible revenue streams."
     )
 
     with st.form("email_capture"):
@@ -413,14 +414,14 @@ if st.session_state.get("show_results", False):
                 "first_name": first_name,
                 "last_name": last_name,
                 "farm_name": farm_name,
-                "top3": [c for c, s in top_3]
+                "top5": [c for c, s in top_5]
             }
             try:
                 st.write("📡 Sending payload:", payload)   # Debug
                 r = requests.post(zapier_webhook_url, json=payload)
                 st.write("🔎 Response status:", r.status_code)  # Debug
                 if r.status_code == 200:
-                    st.success("✅ Thanks! Your personalized Top 3 explanation is on its way to your inbox.")
+                    st.success("✅ Thanks! Your personalized Top 5 explanation is on its way to your inbox.")
                 else:
                     st.error(f"❌ Oops — something went wrong. Status {r.status_code}")
             except Exception as e:
@@ -436,17 +437,17 @@ if st.button("Test AI"):
     st.write(test_api())
 
 st.markdown("---")
-st.header("🌟 Your Top 3 Revenue Streams")
+st.header("🌟 Your Top 5 Revenue Streams")
 
-if 'top3' in locals() and not top3.empty:
-    for _, r in top3.iterrows():
+if 'top5' in locals() and not top5.empty:
+    for _, r in top5.iterrows():
         channel = r["channel_name"]
         blurb = get_channel_narrative(channel, narratives, user_scores)
         st.markdown(f"### {safe_text(channel)}")
         st.markdown(f"**Score:** {r['score']:.0%}")
         st.write(blurb)
 else:
-    st.info("👉 Click **See my Top 3** above to generate your personalized results.")
+    st.info("👉 Click **See my Top 5** above to generate your personalized results.")
 
 # -------------------------
 # DEBUGGING STUFF
