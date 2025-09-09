@@ -91,9 +91,9 @@ def get_channel_narrative(channel_name, narratives, user_scores):
      # Normal case
         strengths_list = [s1["factor_name"], s2["factor_name"]]
         reasons = [
-            s1["weighting_reason"],
-            s2["weighting_reason"],
-            f"{w1['factor_name']} matters here because {w1['weighting_reason']}"
+            f"{s1['factor_name']}: {s1['strength_blurb']} This matters because {s1['weighting_reason']}.",
+            f"{s2['factor_name']}: {s2['strength_blurb']} This matters because {s2['weighting_reason']}.",
+            f"{w1['factor_name']}: {w1['weakness_blurb']} This could be a limitation because {w1['weighting_reason']}."
         ]
         return generate_channel_blurb(channel_name, strengths_list, w1["factor_name"], reasons)
 
@@ -212,19 +212,19 @@ def load_from_excel(xlsx_path: Path):
 
 def generate_channel_blurb(channel, strengths, weakness, reasons):
     prompt = f"""
-    Write a short, encouraging explanation (3–4 sentences) about why this revenue stream is a fit
-    for a flower farmer, based on their unique strengths and challenges.
+    Write a concise, authoritative explanation (3–4 sentences) about why this revenue stream is a fit
+    for a flower farmer, grounded in the specific strengths, weaknesses, and reasons provided.
 
     - Channel: {channel}
-    - Strength 1: {strengths[0]} (Reason: {reasons[0]})
-    - Strength 2: {strengths[1]} (Reason: {reasons[1]})
-    - Weakness: {weakness} (Reason: {reasons[2]})
+    - Strength 1: {strengths[0]} → {reasons[0]}
+    - Strength 2: {strengths[1]} → {reasons[1]}
+    - Weakness: {weakness} → {reasons[2]}
 
     Guidelines:
-    - Use "you" language so the farmer feels seen and recognized.
-    - Emphasize that their strengths make them well-suited to this channel.
-    - Mention the weakness gently as something to be mindful of, not as a harsh criticism.
-    - Keep the tone warm, supportive, and professional.
+    - Use the blurbs and reasons directly — do not ignore or generalize them.
+    - Use an authoritative, specific tone (avoid fluff).
+    - Explain how the strengths lead to concrete outcomes (e.g., loyal buyers, upselling, efficiency).
+    - Present the weakness clearly as a challenge to mitigate or plan for.
     """
 
     response = client.responses.create(
@@ -446,7 +446,7 @@ if 'top5' in locals() and not top5.empty:
         st.markdown(f"### {safe_text(channel)}")
         st.markdown(f"**Score:** {r['score']:.0%}")
         st.write(blurb)
-        
+
     # --- Full Rack & Stack (all channels, sorted) ---
     st.markdown("---")
     st.subheader("📊 Full Rack & Stack (All Channels)")
