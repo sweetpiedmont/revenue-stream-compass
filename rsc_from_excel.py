@@ -4,6 +4,14 @@ import numpy as np
 from pathlib import Path
 import re
 import requests #needed for posting to Zapier
+import os
+from openai import OpenAI
+from dotenv import load_dotenv
+
+# Load API key from .env file
+load_dotenv()
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
 
 def strength_narrative(score, factor, base_blurb):
     if score >= 7:
