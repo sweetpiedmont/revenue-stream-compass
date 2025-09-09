@@ -413,6 +413,9 @@ if st.session_state.get("show_results", False):
     # DEV/TEST OUTPUT (not shown in final lead magnet)
     # -------------------------
 
+    if st.button("Test AI"):
+        st.write(test_api())
+
     st.markdown("---")
     st.header("🧪 DEV/QA Output: Top 3 with Narratives")
 
