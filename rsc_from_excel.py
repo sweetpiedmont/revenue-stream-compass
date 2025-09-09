@@ -208,6 +208,13 @@ def load_from_excel(xlsx_path: Path):
 
     return factors, categories, channels, narratives
 
+def test_api():
+    response = client.responses.create(
+        model="gpt-4.1-mini",
+        input="Say hello to Sharon in one short sentence."
+    )
+    return response.output_text
+
 # -------------------------
 # APP STARTS
 # -------------------------
