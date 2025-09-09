@@ -83,7 +83,7 @@ def get_channel_narrative(channel_name, narratives, user_scores):
             s2["weighting_reason"],
             f"{w1['factor_name']} matters here because {w1['weighting_reason']}"
         ]
-        return generate_channel_blurb(channel_name, strengths_list, w1["factor_name"], reason
+        return generate_channel_blurb(channel_name, strengths_list, w1["factor_name"], reasons)
 
 st.set_page_config(page_title="Revenue Stream Compass — Top 3", page_icon="🌸", layout="centered")
 
