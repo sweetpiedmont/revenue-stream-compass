@@ -428,7 +428,7 @@ if st.session_state.get("show_results", False):
             except Exception as e:
                 st.error(f"⚠️ Connection failed: {e}")
 
-    st.info("✅ This block is DEV-only. This info will be put into a personalized email.")
+    st.info("✅ This block is DEV-only. This info will be put into a personalized pdf that gets sent via email.")
 
 # -------------------------
 # DEV/TEST OUTPUT (not shown in final lead magnet)
