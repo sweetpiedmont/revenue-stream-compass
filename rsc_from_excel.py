@@ -433,35 +433,33 @@ if st.session_state.get("show_results", False):
 
     st.info("✅ This block is DEV-only. It won’t run in main until you merge it back.")
 
-    # -------------------------
-    # DEV/TEST OUTPUT (not shown in final lead magnet)
-    # -------------------------
+# -------------------------
+# DEV/TEST OUTPUT (not shown in final lead magnet)
+# -------------------------
 
-    if st.button("Test AI"):
-        st.write(test_api())
+if st.button("Test AI"):
+    st.write(test_api())
 
-    if st.button("Generate Example Blurb"):
-        channel = "Farmers Markets"
-        strengths = ["Strong customer service", "High community engagement"]
-        weakness = "Limited scheduling flexibility"
-        reasons = [
-            "markets are built on direct interactions",
-            "markets thrive on loyal local audiences",
-            "market times are fixed and require presence"
-        ]
+st.markdown("---")
+st.header("🌟 Your Top 3 Revenue Streams")
 
-        blurb = generate_channel_blurb(channel, strengths, weakness, reasons)
-        st.write(blurb)
-    
-    st.markdown("---")
-    st.header("🧪 DEV/QA Output: Top 3 with Narratives")
+for _, r in top3.iterrows():
+    channel = r['channel_name']
+    # Temporary placeholders until Excel is hooked in
+    strengths = ["Strong customer service", "High community engagement"]
+    weakness = "Limited scheduling flexibility"
+    reasons = [
+        "markets are built on direct interactions",
+        "markets thrive on loyal local audiences",
+        "market times are fixed and require presence"
+    ]
 
-    for _, r in top3.iterrows():
-        st.markdown(f"### {safe_text(r['channel_name'])}")
-        st.markdown(f"**Score:** {r['score']:.0%}")
-        narrative_text = get_channel_narrative(r["channel_name"], narratives, user_scores)
-        st.markdown("**Narrative:**")
-        st.write(narrative_text)
+    blurb = generate_channel_blurb(channel, strengths, weakness, reasons)
+
+    st.markdown(f"### {safe_text(channel)}")
+    st.markdown(f"**Score:** {r['score']:.0%}")
+    st.write(blurb)
+
 
 # -------------------------
 # DEBUGGING STUFF
