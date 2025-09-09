@@ -438,12 +438,15 @@ if st.button("Test AI"):
 st.markdown("---")
 st.header("🌟 Your Top 3 Revenue Streams")
 
-for _, r in top3.iterrows():
-    channel = r["channel_name"]
-    blurb = get_channel_narrative(channel, narratives, user_scores)
-    st.markdown(f"### {safe_text(channel)}")
-    st.markdown(f"**Score:** {r['score']:.0%}")
-    st.write(blurb)
+if 'top3' in locals() and not top3.empty:
+    for _, r in top3.iterrows():
+        channel = r["channel_name"]
+        blurb = get_channel_narrative(channel, narratives, user_scores)
+        st.markdown(f"### {safe_text(channel)}")
+        st.markdown(f"**Score:** {r['score']:.0%}")
+        st.write(blurb)
+else:
+    st.info("👉 Click **See my Top 3** above to generate your personalized results.")
 
 # -------------------------
 # DEBUGGING STUFF
