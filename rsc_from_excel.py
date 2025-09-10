@@ -365,6 +365,7 @@ if st.session_state.get("show_results", False):
 
         # Coverage adjustment (channels with fewer factors scale down)
         coverage = k / max_factors
+        score = weighted_avg / 10.0 * coverage  # now 0–1 scale
 
         adjusted_scores.append(normalized * coverage)
 
