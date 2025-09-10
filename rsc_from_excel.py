@@ -356,18 +356,18 @@ if st.session_state.get("show_results", False):
             adjusted_scores.append(0)
             continue
 
-        # Align user scores and weights for just those factors
-        scores = uw_aligned.loc[:, row_factors.index[factor_mask]].values.flatten()
-        weights = row_factors[factor_mask].values
-
-        # Weighted average of user scores
+        # Weighted average of user scores (0–10 scale)
         weighted_avg = np.dot(scores, weights) / weights.sum()
 
-        # Coverage adjustment (channels with fewer factors scale down)
-        coverage = k / max_factors
-        score = weighted_avg / 10.0 * coverage  # now 0–1 scale
+        # Normalize to 0–1 by dividing by 10
+        normalized = weighted_avg / 10.0
 
-        adjusted_scores.append(normalized * coverage)
+        # Coverage adjustment (optional)
+        coverage = k / max_factors
+
+        # Final score
+        score = normalized * coverage
+        adjusted_scores.append(score)
 
     ch["score"] = adjusted_scores
     
