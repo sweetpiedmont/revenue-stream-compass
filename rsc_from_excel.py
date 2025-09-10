@@ -347,8 +347,6 @@ if st.session_state.get("show_results", False):
     adjusted_scores = []
     for idx, row in channels.iterrows():
         row_factors = row[factor_cols]
-
-        # Boolean mask: which factors are nonzero in this channel
         factor_mask = row_factors > 0
         k = factor_mask.sum()
 
@@ -356,20 +354,32 @@ if st.session_state.get("show_results", False):
             adjusted_scores.append(0)
             continue
 
+        factor_indices = row_factors.index[factor_mask]
+        if len(factor_indices) == 0:
+            adjusted_scores.append(0)
+            continue
+
+        scores = uw_aligned.loc[:, factor_indices].values.flatten()
+        weights = row_factors[factor_mask].values
+
+        if len(scores) == 0 or weights.sum() == 0:
+            adjusted_scores.append(0)
+            continue
+
         # Weighted average of user scores (0–10 scale)
         weighted_avg = np.dot(scores, weights) / weights.sum()
 
-        # Normalize to 0–1 by dividing by 10
+        # Normalize to 0–1
         normalized = weighted_avg / 10.0
 
         # Coverage adjustment (optional)
         coverage = k / max_factors
 
-        # Final score
         score = normalized * coverage
         adjusted_scores.append(score)
 
     ch["score"] = adjusted_scores
+
     
     # --- Contribution Analysis (row-normalized) ---
     raw_contribs = channels[factor_cols].values * uw_aligned.values
