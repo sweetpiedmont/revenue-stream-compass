@@ -409,7 +409,7 @@ if st.session_state.get("show_results", False):
     for _, r in top5.iterrows():
         with st.container(border=True):
             st.markdown(f"### {safe_text(r['channel_name'])}")
-            st.markdown(f"**Score:** {r['score']:.0%}")
+            st.markdown(f"**Score:** {r['score'] / 10:.0%}")
 
             chan = ch[ch["channel_name"] == r["channel_name"]].iloc[0]
             tags = safe_text(chan.get("tags"))
