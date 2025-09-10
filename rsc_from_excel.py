@@ -340,14 +340,12 @@ if st.session_state.get("show_results", False):
     #ch = channels.copy()
     #ch["score"] = np.divide(scores, max_scores, out=np.zeros_like(scores), where=max_scores != 0)
 
-    # --- NEW SCORING: Weighted Average with Coverage Adjustment
+    # --- NEW SCORING: Weighted Average with Coverage + Channel Normalization
     ch = channels.copy()
     max_factors = max(channels[factor_cols].astype(bool).sum(axis=1))
 
     adjusted_scores = []
     for idx, row in channels.iterrows():
-        # factors used in this channel
-        # Slice this row down to factor columns only
         row_factors = row[factor_cols]
 
         # Boolean mask: which factors are nonzero in this channel
@@ -362,10 +360,17 @@ if st.session_state.get("show_results", False):
         scores = uw_aligned.loc[:, row_factors.index[factor_mask]].values.flatten()
         weights = row_factors[factor_mask].values
 
+        # Weighted average of user scores
         weighted_avg = np.dot(scores, weights) / weights.sum()
+
+        # --- NEW: normalize by this channel’s max possible weighted average ---
+        max_weighted_avg = np.dot([10] * len(weights), weights) / weights.sum()
+        normalized = weighted_avg / max_weighted_avg
+
+        # Coverage adjustment (channels with fewer factors scale down)
         coverage = k / max_factors
 
-        adjusted_scores.append(weighted_avg * coverage)
+        adjusted_scores.append(normalized * coverage)
 
     ch["score"] = adjusted_scores
     
