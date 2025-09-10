@@ -347,17 +347,24 @@ if st.session_state.get("show_results", False):
     adjusted_scores = []
     for idx, row in channels.iterrows():
         # factors used in this channel
-        factor_mask = row[factor_cols] > 0
+        # Slice this row down to factor columns only
+        row_factors = row[factor_cols]
+
+        # Boolean mask: which factors are nonzero in this channel
+        factor_mask = row_factors > 0
         k = factor_mask.sum()
 
         if k == 0:
             adjusted_scores.append(0)
             continue
 
-        # user scores for those factors
-        scores = uw_aligned.loc[:, factor_mask].values.flatten()
-        weights = row[factor_mask].values
+        # Align user scores and weights for just those factors
+        scores = uw_aligned.loc[:, row_factors.index[factor_mask]].values.flatten()
+        weights = row_factors[factor_mask].values
 
+        if debug_mode:
+            st.write("DEBUG:", row["channel_name"], list(zip(row_factors.index[factor_mask], weights)))
+        
         weighted_avg = np.dot(scores, weights) / weights.sum()
         coverage = k / max_factors
 
