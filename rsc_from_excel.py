@@ -332,13 +332,39 @@ if st.session_state.get("show_results", False):
 
     uw_aligned = uw_df[channels[factor_cols].columns]
 
-    scores = np.dot(channels[factor_cols].values, uw_aligned.values.T).reshape(-1)
-    max_vector = np.array([10.0] * len(factor_cols))
-    max_scores = np.dot(channels[factor_cols].values, max_vector.T).reshape(-1)
+    # --- ORIGINAL SCORING ---
+    # scores = np.dot(channels[factor_cols].values, uw_aligned.values.T).reshape(-1)
+    #max_vector = np.array([10.0] * len(factor_cols))
+    #max_scores = np.dot(channels[factor_cols].values, max_vector.T).reshape(-1)
 
+    #ch = channels.copy()
+    #ch["score"] = np.divide(scores, max_scores, out=np.zeros_like(scores), where=max_scores != 0)
+
+    # --- NEW SCORING: Weighted Average with Coverage Adjustment
     ch = channels.copy()
-    ch["score"] = np.divide(scores, max_scores, out=np.zeros_like(scores), where=max_scores != 0)
+    max_factors = max(channels[factor_cols].astype(bool).sum(axis=1))
 
+    adjusted_scores = []
+    for idx, row in channels.iterrows():
+        # factors used in this channel
+        factor_mask = row[factor_cols] > 0
+        k = factor_mask.sum()
+
+        if k == 0:
+            adjusted_scores.append(0)
+            continue
+
+        # user scores for those factors
+        scores = uw_aligned.loc[:, factor_mask].values.flatten()
+        weights = row[factor_mask].values
+
+        weighted_avg = np.dot(scores, weights) / weights.sum()
+        coverage = k / max_factors
+
+        adjusted_scores.append(weighted_avg * coverage)
+
+    ch["score"] = adjusted_scores
+    
     # --- Contribution Analysis (row-normalized) ---
     raw_contribs = channels[factor_cols].values * uw_aligned.values
     row_totals = raw_contribs.sum(axis=1, keepdims=True)
