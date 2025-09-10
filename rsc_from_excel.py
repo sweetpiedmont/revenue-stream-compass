@@ -363,10 +363,6 @@ if st.session_state.get("show_results", False):
         # Weighted average of user scores
         weighted_avg = np.dot(scores, weights) / weights.sum()
 
-        # --- NEW: normalize by this channel’s max possible weighted average ---
-        max_weighted_avg = np.dot([10] * len(weights), weights) / weights.sum()
-        normalized = weighted_avg / max_weighted_avg
-
         # Coverage adjustment (channels with fewer factors scale down)
         coverage = k / max_factors
 
