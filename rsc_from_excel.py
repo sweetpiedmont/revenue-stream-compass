@@ -362,9 +362,6 @@ if st.session_state.get("show_results", False):
         scores = uw_aligned.loc[:, row_factors.index[factor_mask]].values.flatten()
         weights = row_factors[factor_mask].values
 
-        if debug_mode:
-            st.write("DEBUG:", row["channel_name"], list(zip(row_factors.index[factor_mask], weights)))
-        
         weighted_avg = np.dot(scores, weights) / weights.sum()
         coverage = k / max_factors
 
