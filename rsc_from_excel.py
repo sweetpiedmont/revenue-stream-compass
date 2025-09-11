@@ -449,6 +449,14 @@ if st.session_state.get("show_results", False):
     )
 
     # --- Show Top 5 ---
+    # Global check: did the user leave all sliders the same?
+    if len(set(user_scores.values())) == 1:
+        st.warning(
+            "⚠️ It looks like you gave every Field Factor the same score. "
+            "Your results will be based only on how the Compass weights different Field Factors, not your unique situation. "
+            "For a more meaningful result, try adjusting your scores so they’re not all identical."
+        )
+
     top5 = rackstack.head(5)
     st.subheader("Your Top 5 Matches")
     for _, r in top5.iterrows():
