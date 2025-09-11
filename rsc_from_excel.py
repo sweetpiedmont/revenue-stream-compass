@@ -342,24 +342,17 @@ if st.session_state.get("show_results", False):
 
     # --- NEW SCORING: Weighted Average with Coverage + Channel Normalization
     ch = channels.copy()
-    max_factors = max(channels[factor_cols].astype(bool).sum(axis=1))
 
     adjusted_scores = []
     for idx, row in channels.iterrows():
         row_factors = row[factor_cols]
         factor_mask = row_factors > 0
-        k = factor_mask.sum()
 
-        if k == 0:
+        if factor_mask.sum() == 0:
             adjusted_scores.append(0)
             continue
 
-        factor_indices = row_factors.index[factor_mask]
-        if len(factor_indices) == 0:
-            adjusted_scores.append(0)
-            continue
-
-        scores = uw_aligned.loc[:, factor_indices].values.flatten()
+        scores = uw_aligned.loc[:, row_factors.index[factor_mask]].values.flatten()
         weights = row_factors[factor_mask].values
 
         if len(scores) == 0 or weights.sum() == 0:
@@ -370,17 +363,12 @@ if st.session_state.get("show_results", False):
         weighted_avg = np.dot(scores, weights) / weights.sum()
 
         # Normalize to 0–1
-        normalized = weighted_avg / 10.0
+        score = weighted_avg / 10.0
 
-        # Coverage adjustment (optional)
-        coverage = k / max_factors
-
-        score = normalized * coverage
         adjusted_scores.append(score)
 
     ch["score"] = adjusted_scores
 
-    
     # --- Contribution Analysis (row-normalized) ---
     raw_contribs = channels[factor_cols].values * uw_aligned.values
     row_totals = raw_contribs.sum(axis=1, keepdims=True)
