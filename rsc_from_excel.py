@@ -367,7 +367,22 @@ if st.session_state.get("show_results", False):
 
         adjusted_scores.append(score)
 
-    ch["score"] = adjusted_scores
+    # Existing: fit-only score
+    ch["fit_score"] = adjusted_scores  # already normalized 0–1
+
+    # Option 2: Weighted blend (70% fit + 30% coverage)
+    coverages = []
+    for idx, row in channels.iterrows():
+        row_factors = row[factor_cols]
+        k = (row_factors > 0).sum()
+        coverage = k / max_factors if max_factors > 0 else 0
+        coverages.append(coverage)
+    ch["coverage"] = coverages
+
+        # Blended score
+    alpha = 0.7  # weight for fit
+    beta  = 0.3  # weight for coverage
+    ch["blend_score"] = alpha * ch["fit_score"] + beta * ch["coverage"]
 
     # --- Contribution Analysis (row-normalized) ---
     raw_contribs = channels[factor_cols].values * uw_aligned.values
@@ -393,11 +408,12 @@ if st.session_state.get("show_results", False):
         weaknesses = sorted_factors.tail(n).index.tolist()
         return strengths, weaknesses
 
-    # Build Rack & Stack (all channels sorted by score)
+    # Choose which score to use here:
     rackstack = (
-        ch.loc[:, ["channel_name", "score"]]
-          .sort_values("score", ascending=False)
-          .reset_index(drop=True)
+        ch.loc[:, ["channel_name", "fit_score", "coverage", "blend_score"]]
+            .assign(score=ch["blend_score"])   # << switch here easily
+            .sort_values("score", ascending=False)
+            .reset_index(drop=True)
     )
 
     # --- Show Top 5 ---
@@ -463,6 +479,10 @@ if st.session_state.get("show_results", False):
 # -------------------------
 # DEV/TEST OUTPUT (not shown in final lead magnet)
 # -------------------------
+
+if debug_mode:
+    st.write("DEBUG: Score comparison")
+    st.dataframe(ch[["channel_name","fit_score","coverage","blend_score"]])
 
 #if st.button("Test AI"):
     #st.write(test_api())
