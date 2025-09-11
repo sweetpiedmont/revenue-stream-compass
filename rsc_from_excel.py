@@ -384,26 +384,29 @@ if st.session_state.get("show_results", False):
 
     ch["coverage"] = coverages
 
-        # Blended score
-    alpha = 0.7  # weight for fit
-    beta  = 0.3  # weight for coverage
-    ch["blend_score"] = alpha * ch["fit_score"] + beta * ch["coverage"]
+    # --- Blended scores ---
+    ch["blend_score_70"] = 0.7 * ch["fit_score"] + 0.3 * ch["coverage"]
+    ch["blend_score_80"] = 0.8 * ch["fit_score"] + 0.2 * ch["coverage"]
 
     # Let user choose which scoring method drives the rankings
     score_method = st.radio(
         "Choose scoring method for Top 5:",
-        ["Fit Only", "Blend (70/30)", "Coverage Only"],
-        index=1   # default = Blend
+        ["Fit Only", "Blend (70/30)", "Blend (80/20)", "Coverage Only"],
+        index=1   # default = Blend (70/30)
     )
 
     if score_method == "Fit Only":
         ch["score"] = ch["fit_score"]
     elif score_method == "Coverage Only":
         ch["score"] = ch["coverage"]
-    else:  # Blend
-        ch["score"] = ch["blend_score"]
+    elif score_method == "Blend (70/30)":
+        ch["score"] = ch["blend_score_70"]
+    elif score_method == "Blend (80/20)":
+        ch["score"] = ch["blend_score_80"]
+    else:
+        ch["score"] = ch["fit_score"]  # fallback
 
-    # Keep score_map synced to whichever score is active
+    # Keep score_map synced
     score_map = dict(zip(ch["channel_name"], ch["score"]))
     
     # --- Contribution Analysis (row-normalized) ---
@@ -432,7 +435,7 @@ if st.session_state.get("show_results", False):
 
     # Choose which score to use here:
     rackstack = (
-        ch.loc[:, ["channel_name", "fit_score", "coverage", "blend_score", "score"]]
+        ch.loc[:, ["channel_name", "fit_score", "coverage", "blend_score_70", "blend_score_80", "score"]]
             .sort_values("score", ascending=False)
             .reset_index(drop=True)
     )
@@ -503,7 +506,7 @@ if st.session_state.get("show_results", False):
 
 if debug_mode:
     st.write("DEBUG: Score comparison")
-    st.dataframe(ch[["channel_name","fit_score","coverage","blend_score"]])
+    st.dataframe(ch[["channel_name","fit_score","coverage","blend_score_70","blend_score_80","score"]])
 
 #if st.button("Test AI"):
     #st.write(test_api())
