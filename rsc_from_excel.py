@@ -384,6 +384,23 @@ if st.session_state.get("show_results", False):
     beta  = 0.3  # weight for coverage
     ch["blend_score"] = alpha * ch["fit_score"] + beta * ch["coverage"]
 
+    # Let user choose which scoring method drives the rankings
+    score_method = st.radio(
+        "Choose scoring method for Top 5:",
+        ["Fit Only", "Blend (70/30)", "Coverage Only"],
+        index=1   # default = Blend
+    )
+
+    if score_method == "Fit Only":
+        ch["score"] = ch["fit_score"]
+    elif score_method == "Coverage Only":
+        ch["score"] = ch["coverage"]
+    else:  # Blend
+        ch["score"] = ch["blend_score"]
+
+    # Keep score_map synced to whichever score is active
+    score_map = dict(zip(ch["channel_name"], ch["score"]))
+    
     # --- Contribution Analysis (row-normalized) ---
     raw_contribs = channels[factor_cols].values * uw_aligned.values
     row_totals = raw_contribs.sum(axis=1, keepdims=True)
