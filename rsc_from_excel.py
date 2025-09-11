@@ -90,7 +90,7 @@ def get_channel_narrative(channel_name, narratives, user_scores):
 
     elif all_same:
         return (
-        f"Because all of your scores are the same, the explanation of your Top Revenue Streams is "
+        f"Because all of your Field Factor scores are the same, the explanation of your Top Revenue Streams is "
         f"based exclusively on how the Revenue Stream Compass™ weights different Field Factors in each channel. "
         f"To get a more meaningful and personalized result, please consider adjusting your scores so they’re not all identical."
     )
