@@ -53,6 +53,7 @@ def get_channel_narrative(channel_name, narratives, user_scores):
     # Edge case detection (per channel)
     all_high = df["user_score"].min() >= 8
     all_low = df["user_score"].max() <= 3
+    all_same = df["user_score"].nunique() == 1
 
     # Select top 2 strengths
     strengths = df.sort_values("weighted_score", ascending=False).head(2)
@@ -86,6 +87,13 @@ def get_channel_narrative(channel_name, narratives, user_scores):
         f"Even though your scores for {channel_name} are strong overall, {w1['factor_name']} still ranked lowest. {w1['weakness_blurb']}"
         ]
         return generate_channel_blurb(channel_name, strengths_list, w1["factor_name"], reasons)
+
+    elif all_same:
+        return (
+        f"Because all of your scores are the same, the explanation of your Top Revenue Streams is "
+        f"based exclusively on how the Revenue Stream Compass™ weights different Field Factors in each channel. "
+        f"To get a more meaningful and personalized result, please consider adjusting your scores so they’re not all identical."
+    )
 
     else:
      # Normal case
