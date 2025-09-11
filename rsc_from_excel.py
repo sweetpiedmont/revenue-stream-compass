@@ -373,12 +373,15 @@ if st.session_state.get("show_results", False):
     # Option 2: Weighted blend (70% fit + 30% coverage)
     max_factors = max(channels[factor_cols].astype(bool).sum(axis=1))
     
+    # Define max_factors_high = max count of "important" factors across all channels
+    max_factors_high = (channels[factor_cols] >= 4).sum(axis=1).max()
+
     coverages = []
     for idx, row in channels.iterrows():
-        row_factors = row[factor_cols]
-        k = (row_factors > 0).sum()
-        coverage = k / max_factors if max_factors > 0 else 0
+        k = (row[factor_cols] >= 4).sum()
+        coverage = k / max_factors_high if max_factors_high > 0 else 0
         coverages.append(coverage)
+
     ch["coverage"] = coverages
 
         # Blended score
