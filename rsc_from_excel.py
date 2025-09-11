@@ -427,8 +427,7 @@ if st.session_state.get("show_results", False):
 
     # Choose which score to use here:
     rackstack = (
-        ch.loc[:, ["channel_name", "fit_score", "coverage", "blend_score"]]
-            .assign(score=ch["blend_score"])   # << switch here easily
+        ch.loc[:, ["channel_name", "fit_score", "coverage", "blend_score", "score"]]
             .sort_values("score", ascending=False)
             .reset_index(drop=True)
     )
