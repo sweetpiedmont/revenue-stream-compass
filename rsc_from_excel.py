@@ -371,6 +371,8 @@ if st.session_state.get("show_results", False):
     ch["fit_score"] = adjusted_scores  # already normalized 0–1
 
     # Option 2: Weighted blend (70% fit + 30% coverage)
+    max_factors = max(channels[factor_cols].astype(bool).sum(axis=1))
+    
     coverages = []
     for idx, row in channels.iterrows():
         row_factors = row[factor_cols]
