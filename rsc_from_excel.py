@@ -373,12 +373,12 @@ if st.session_state.get("show_results", False):
     # Option 2: Weighted blend (70% fit + 30% coverage)
     max_factors = max(channels[factor_cols].astype(bool).sum(axis=1))
     
-    # Define max_factors_high = max count of "important" factors across all channels
-    max_factors_high = (channels[factor_cols] >= 4).sum(axis=1).max()
+    # --- Coverage calculation (count only "important" factors: Excel 4–5 → adjusted 8–10) ---
+    max_factors_high = (channels[factor_cols] >= 8).sum(axis=1).max()
 
     coverages = []
     for idx, row in channels.iterrows():
-        k = (row[factor_cols] >= 4).sum()
+        k = (row[factor_cols] >= 8).sum() # count only factors with adjusted weight >= 8
         coverage = k / max_factors_high if max_factors_high > 0 else 0
         coverages.append(coverage)
 
