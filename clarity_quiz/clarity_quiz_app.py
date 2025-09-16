@@ -57,19 +57,19 @@ if st.button("👉 See My Result"):
         if stage == "Seedling":
             st.success("🌱 You’re in the Seedling Stage — and that’s a beautiful place to begin!")
             st.write("You’re dreaming wisely before you leap. Good for you!\n\n"
-                     "Your free **Seedling Clarity Pack** helps you name how you want your flower life to feel, "
+                     "Your **Seedling Clarity Pack** will help you name how you want your flower life to feel, "
                      "what you want (and don’t want), and what matters most — so you can plan your next steps with confidence.\n\n"
                      "👉 [Download Your Seedling Clarity Pack](#)")
         elif stage == "Budding":
             st.success("🌸 You’re in the Budding Stage — it’s time to grow smarter, not harder!")
             st.write("You’ve planted seeds and sold your first stems — now you want to grow wisely, protect your energy, "
                      "and keep Living the Flower Life your way.\n\n"
-                     "Your free **Budding Clarity Pack** helps you pause, reflect, and see what you want more of and what you don’t — "
+                     "Your **Budding Clarity Pack** will help you pause, reflect, and see what you want more of and what you don’t — "
                      "so you can plan your next season with clarity.\n\n"
                      "👉 [Download Your Budding Clarity Pack](#)")
         elif stage == "Blooming":
             st.success("💐 You’re in the Blooming Stage — your next season deserves focus and joy!")
             st.write("You’ve built a flower business you can be proud of — but you know staying in bloom takes intention.\n\n"
-                     "Your free **Blooming Clarity Pack** helps you remember what you love, name what drains you, and choose what stays and what goes — "
+                     "Your **Blooming Clarity Pack** will help you remember what you love, name what drains you, and choose what stays and what goes — "
                      "so your flower farm fits your life, not the other way around.\n\n"
                      "👉 [Download Your Blooming Clarity Pack](#)")
