@@ -2,6 +2,8 @@
 import streamlit as st
 from collections import Counter
 
+st.write("✅ App file loaded successfully")
+
 st.set_page_config(page_title="Clarity Pack Quiz", page_icon="🌸", layout="centered")
 
 st.title("✨ Where Are You On Your Flower Farming Journey?")
@@ -78,7 +80,7 @@ if st.button("👉 See My Result"):
                          "👉 [Download Your Seedling Clarity Pack](#)")
             elif stage == "Budding":
                 st.success("🌸 You’re in the Budding Stage — it’s time to grow smarter, not harder!")
-                st.write("You’ve planted seeds and sold your first stems — now you want to grow wisely, protect your energy, "
+                st.write("You’ve planted seeds and likely sold your first stems — now you want to grow wisely, protect your energy, "
                          "and keep Living the Flower Life your way.\n\n"
                          "Your **Budding Clarity Pack** will help you pause, reflect, and see what you want more of and what you don’t — "
                          "so you can plan your next season with clarity.\n\n"
