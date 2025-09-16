@@ -51,8 +51,24 @@ if st.button("👉 See My Result"):
     if not stages:
         st.warning("Please answer at least one question.")
     else:
-        # Majority stage
-        stage = Counter(stages).most_common(1)[0][0]
+        counts = Counter(stages)
+        top_two = counts.most_common(2)
+
+        # Check for a tie
+        if len(top_two) > 1 and top_two[0][1] == top_two[1][1]:
+            stage1, stage2 = top_two[0][0], top_two[1][0]
+            st.info(f"✨ You’re somewhere between **{stage1}** and **{stage2}**!")
+            st.write("That’s a natural spot to be — many flower farmers straddle stages. "
+                     "Download both Clarity Packs, take a look, and fill out the one that feels right to you.")
+            if stage1 == "Seedling" or stage2 == "Seedling":
+                st.write("👉 [Download Seedling Clarity Pack](#)")
+            if stage1 == "Budding" or stage2 == "Budding":
+                st.write("👉 [Download Budding Clarity Pack](#)")
+            if stage1 == "Blooming" or stage2 == "Blooming":
+                st.write("👉 [Download Blooming Clarity Pack](#)")
+        else:
+            # Normal case: one clear majority
+            stage = top_two[0][0]
 
         if stage == "Seedling":
             st.success("🌱 You’re in the Seedling Stage — and that’s a beautiful place to begin!")
