@@ -7,7 +7,7 @@ st.write("✅ App file loaded successfully")
 st.set_page_config(page_title="Clarity Pack Quiz", page_icon="🌸", layout="centered")
 
 st.title("✨ Where Are You On Your Flower Farming Journey?")
-st.subheader("Take this 2-minute check-in to discover your flower farm stage — and get your free Clarity Pack to help you Live the Flower Life YOUR way.")
+st.subheader("Take this 2-minute check-in to discover your flower farm stage.")
 
 # --- Questions ---
 questions = {
