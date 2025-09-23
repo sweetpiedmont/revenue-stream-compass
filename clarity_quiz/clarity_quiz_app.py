@@ -2,8 +2,6 @@
 import streamlit as st
 from collections import Counter
 
-st.write("✅ App file loaded successfully")
-
 st.set_page_config(page_title="Clarity Pack Quiz", page_icon="🌸", layout="centered")
 
 st.title("✨ Where Are You On Your Flower Farming Journey?")
@@ -19,6 +17,7 @@ questions = {
     "Q2: How many seasons have you grown flowers with selling in mind?": [
         ("🌱 0 — I’m just researching or planting for fun.", "Seedling"),
         ("🌸 1–2 seasons.", "Budding"),
+        
         ("💐 3 or more seasons.", "Blooming")
     ],
     "Q3: Which feels most like you right now?": [
