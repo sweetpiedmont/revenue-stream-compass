@@ -509,21 +509,11 @@ if st.session_state.get("show_results", False):
 
     top5 = rackstack.head(5)
     st.subheader("Your Top 5 Matches")
-    for _, r in top5.iterrows():
-        with st.container(border=True):
-            st.markdown(f"### {safe_text(r['channel_name'])}")
-            st.markdown(f"**Score:** {r['score']:.0%}")
 
-            chan = ch[ch["channel_name"] == r["channel_name"]].iloc[0]
-            tags = safe_text(chan.get("tags"))
-            if tags:
-                st.markdown(f"**Tags:** {tags}")
-            why = safe_text(chan.get("why_fit_short"))
-            if why:
-                st.markdown(f"_{why}_")
-            link = safe_text(chan.get("compass_link"))
-            if link:
-                st.markdown(f"[Open Guidebook chapter]({link})")
+    for i, r in enumerate(top5.itertuples(), start=1):
+        st.markdown(f"#### {i}. {safe_text(r.channel_name)}")
+        blurb = get_channel_narrative(r.channel_name, narratives, user_scores)
+        st.write(blurb)
     
     # --- Build portable Top 5 list for CTA ---
     top_5 = top5[["channel_name", "score"]].values.tolist()
