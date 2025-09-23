@@ -246,7 +246,6 @@ def generate_channel_blurb(channel, strengths, weakness, reasons):
 # -------------------------
 # APP STARTS
 # -------------------------
-st.title("🌸 Welcome to the Field Factors Self-Assessment")
 
 factors, categories, channels, narratives = load_from_excel(XLSX)
 
@@ -318,11 +317,11 @@ else:
     # -------------------------
     # USER INPUTS
     # -------------------------
-    st.markdown("✅ You’re ready to begin! Scroll down to start your self-assessment.")
-
     user_scores = {}
 
-    st.subheader("Your Field Factor Self Assessment")
+    st.title("🌸 Welcome to Your Field Factors Self Assessment")
+
+    st.markdown("👉 For each question, use the slider to rate yourself on the scale provided. Move the bar to the point that best reflects your current situation.")
 
     for _, cat_row in categories.iterrows():
         cat_name = cat_row["category_name"]
