@@ -312,7 +312,7 @@ if not st.session_state.started:
     if st.button("🌟 I'm Ready — Let's Start My Self-Assessment!", disabled=not consent):
         if consent:
             st.session_state.started = True
-            st.experimental_rerun()
+            st.rerun()
 
 else:
     # -------------------------
