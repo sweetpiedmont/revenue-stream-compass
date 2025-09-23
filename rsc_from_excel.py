@@ -512,8 +512,6 @@ if st.session_state.get("show_results", False):
 
     for i, r in enumerate(top5.itertuples(), start=1):
         st.markdown(f"#### {i}. {safe_text(r.channel_name)}")
-        blurb = get_channel_narrative(r.channel_name, narratives, user_scores)
-        st.write(blurb)
     
     # --- Build portable Top 5 list for CTA ---
     top_5 = top5[["channel_name", "score"]].values.tolist()
