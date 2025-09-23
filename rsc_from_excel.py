@@ -519,9 +519,9 @@ if st.session_state.get("show_results", False):
     st.markdown("---")
     st.subheader("📩 Want to know *WHY* these are your Top 5 *AND* see how you stack up against all 18 potential revenue streams?")
     st.markdown(
-        "Get a personalized explanation of your results delivered straight to your inbox — "
+        "Get a personalized explanation of your Top 5 revenue stream results delivered straight to your inbox — "
         "including some of the key strengths and challenges behind your Top 5 matches. We'll also "
-        "give you your scores for all 18 possible revenue streams."
+        "show you how you fit against all 18 possible revenue streams."
     )
 
     with st.form("email_capture"):
