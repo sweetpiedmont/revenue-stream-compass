@@ -570,13 +570,6 @@ if st.session_state.get("show_results", False):
 # DEV/TEST OUTPUT (not shown in final lead magnet)
 # -------------------------
 
-if debug_mode:
-    st.write("DEBUG: Score comparison")
-    st.dataframe(ch[["channel_name","fit_score","coverage","blend_score_70","blend_score_80","score"]])
-
-#if st.button("Test AI"):
-    #st.write(test_api())
-
 st.markdown("---")
 st.header("🌟 Your Top 5 Revenue Streams")
 
