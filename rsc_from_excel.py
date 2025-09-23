@@ -442,25 +442,27 @@ if st.session_state.get("show_results", False):
 
     # --- Blended scores ---
     ch["blend_score_70"] = 0.7 * ch["fit_score"] + 0.3 * ch["coverage"]
-    ch["blend_score_80"] = 0.8 * ch["fit_score"] + 0.2 * ch["coverage"]
+    ch["score"] = ch["blend_score_70"]  # Lock in 70/30 as the scoring method
+    #ch["blend_score_80"] = 0.8 * ch["fit_score"] + 0.2 * ch["coverage"] #remove this option
 
+    ### REMOVED RADIO BUTTON AND OPTIONS FOR HOW SCORING IS DONE ###
     # Let user choose which scoring method drives the rankings
-    score_method = st.radio(
-        "Choose scoring method for Top 5:",
-        ["Fit Only", "Blend (70/30)", "Blend (80/20)", "Coverage Only"],
-        index=1   # default = Blend (70/30)
-    )
+    #score_method = st.radio(
+        #"Choose scoring method for Top 5:",
+        #["Fit Only", "Blend (70/30)", "Blend (80/20)", "Coverage Only"],
+        #index=1   # default = Blend (70/30)
+    #)
 
-    if score_method == "Fit Only":
-        ch["score"] = ch["fit_score"]
-    elif score_method == "Coverage Only":
-        ch["score"] = ch["coverage"]
-    elif score_method == "Blend (70/30)":
-        ch["score"] = ch["blend_score_70"]
-    elif score_method == "Blend (80/20)":
-        ch["score"] = ch["blend_score_80"]
-    else:
-        ch["score"] = ch["fit_score"]  # fallback
+    #if score_method == "Fit Only":
+        #ch["score"] = ch["fit_score"]
+    #elif score_method == "Coverage Only":
+        #ch["score"] = ch["coverage"]
+    #elif score_method == "Blend (70/30)":
+        #ch["score"] = ch["blend_score_70"]
+    #elif score_method == "Blend (80/20)":
+        #ch["score"] = ch["blend_score_80"]
+    # else:
+        #ch["score"] = ch["fit_score"]  # fallback
 
     # Keep score_map synced
     score_map = dict(zip(ch["channel_name"], ch["score"]))
