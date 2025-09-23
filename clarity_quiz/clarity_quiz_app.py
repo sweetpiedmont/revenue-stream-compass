@@ -17,7 +17,7 @@ questions = {
     "Q2: How many seasons have you grown flowers with selling in mind?": [
         ("🌱 0 — I’m just researching or planting for fun.", "Seedling"),
         ("🌸 1–2 seasons.", "Budding"),
-        
+
         ("💐 3 or more seasons.", "Blooming")
     ],
     "Q3: Which feels most like you right now?": [
@@ -30,7 +30,7 @@ questions = {
         ("🌸 I want to grow this dream bigger — but keep my sanity.", "Budding"),
         ("💐 I want to refine and protect what I’ve built, so it stays joyful.", "Blooming")
     ],
-    "Q5 (Optional): How much time do you spend on flowers now?": [
+    "Q5  How much time do you spend on flowers now?": [
         ("🌱 Just for fun, in my spare time.", "Seedling"),
         ("🌸 A few hours a week — juggling it with other work.", "Budding"),
         ("💐 It takes up a big chunk of my week.", "Blooming")

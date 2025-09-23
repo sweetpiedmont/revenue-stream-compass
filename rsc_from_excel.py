@@ -258,69 +258,124 @@ rackstack = pd.DataFrame(columns=["channel_name", "score"])
 # st.write("DEBUG: Factor names from Excel")
 # st.json(factors["factor_name"].tolist())
 
-# Debug mode toggle
-debug_mode = st.checkbox("Enable Debug Mode")
-
 # -------------------------
-# USER INPUTS
+# PHASE 0: INTRO + TRUST SETUP
 # -------------------------
-user_scores = {}
 
-st.subheader("Your Field Factor Self Assessment")
+if "started" not in st.session_state:
+    st.session_state.started = False
 
-# factors, categories, channels now come from load_from_excel
-for _, cat_row in categories.iterrows():
-    cat_name = cat_row["category_name"]
-    cat_desc = cat_row.get("category_description", "")
+if not st.session_state.started:
+    st.title("🌸 Welcome to the Field Factors Self-Assessment")
 
-    st.markdown(f"## {cat_name}")
-    if pd.notna(cat_desc) and str(cat_desc).strip():
-        st.markdown(f"*{cat_desc.strip()}*")
-        st.markdown("")
+    # Pre-amble
+    st.markdown("""
+    This is the **Field Factors Self-Assessment** — a short, structured quiz designed to show 
+    which flower-farming revenue streams align with your strengths, resources, and goals.  
+    
+    👉 This isn’t a test, and there are no “good” or “bad” answers.  
+    The more honest you are, the more useful your results will be.
+    """)
 
-    # Filter factors belonging to this category
-    these_factors = factors[factors["category_name"] == cat_name]
+    # Honesty reminder
+    st.subheader("A quick but important note before you begin")
+    st.markdown("""
+    It may be tempting to nudge your scores toward the sales channel you think you want — or 
+    soften your answers because you’re worried a low score means you can’t pursue it.  
+    
+    That’s not how this works.  
 
-    for i, row in these_factors.iterrows():
-        fid   = row["factor_id"]
-        fname = row["factor_name"]
+    The Compass isn’t here to gatekeep your dream. It’s here to help you pursue it smarter.  
+    Every sales channel has workarounds — and your results will point out both strengths and challenges.  
+    
+    So be honest: don’t downplay your strengths, and don’t be afraid to reveal your challenges.
+    """)
 
-        # spacing before factors after the first
-        if i > 0:
-            st.markdown("&nbsp;", unsafe_allow_html=True)
+    # Boxed callout
+    st.markdown("---")
+    st.markdown(
+        """
+        <div style='border: 2px solid #ddd; border-radius: 10px; padding: 15px; background-color: #f9f9f9;'>
+        <strong>Note: Not Every Factor Is Scored — On Purpose</strong><br><br>
+        You won’t see questions here about things like years of farming experience, bookkeeping skills, 
+        or how many other farms are nearby. Those matter — but they’ll affect you no matter which 
+        sales channel you choose.  
 
-        # Factor name + description
-        fdesc = row.get("factor_description", "")
-        st.markdown(f"**{fname}**: {safe_text(fdesc)}")
+        This self-assessment focuses only on the factors that actually help you compare and choose 
+        between different sales channels. If it’s not here, it’s not because it’s unimportant — 
+        it’s because it won’t change which options are the best fit for you.
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    st.markdown("---")
 
-        # Custom labels, fallback to Weakness/Strength
-        left_label  = safe_text(row.get("left_label"))  or "Weakness"
-        right_label = safe_text(row.get("right_label")) or "Strength"
+    # Privacy + Consent
+    consent = st.checkbox("🔒 I understand that my responses will be stored securely, "
+                          "used only in aggregate for research, and never shared individually.")
 
-        # Slider
-        vmin  = int(row.get("min", 0))
-        vmax  = int(row.get("max", 10))
-        vstep = int(row.get("step", 1))
-        vdef  = int((vmax + vmin) // 2)
+    # Start button (only active if consent given)
+    if st.button("🌟 I'm Ready — Start the Self-Assessment", disabled=not consent):
+        if consent:
+            st.session_state.started = True
+            st.experimental_rerun()
 
-        user_scores[fid] = st.slider(
-            fname,
-            min_value=vmin,
-            max_value=vmax,
-            value=vdef,
-            step=vstep,
-            key=f"slider_{fid}",
-            label_visibility="collapsed"
-        )
+else:
+    # -------------------------
+    # USER INPUTS
+    # -------------------------
+    st.markdown("✅ You’re ready to begin! Scroll down to start your self-assessment.")
 
-        # Labels under slider
-        st.markdown(
-            f"<div style='display:flex; justify-content:space-between; margin-top:-8px;'>"
-            f"<span style='font-size:0.8em; color:gray;'>{left_label}</span>"
-            f"<span style='font-size:0.8em; color:gray;'>{right_label}</span>"
-            "</div>",
-            unsafe_allow_html=True
-        )
+    user_scores = {}
+
+    st.subheader("Your Field Factor Self Assessment")
+
+    for _, cat_row in categories.iterrows():
+        cat_name = cat_row["category_name"]
+        cat_desc = cat_row.get("category_description", "")
+
+        st.markdown(f"## {cat_name}")
+        if pd.notna(cat_desc) and str(cat_desc).strip():
+            st.markdown(f"*{cat_desc.strip()}*")
+            st.markdown("")
+
+        these_factors = factors[factors["category_name"] == cat_name]
+
+        for i, row in these_factors.iterrows():
+            fid   = row["factor_id"]
+            fname = row["factor_name"]
+
+            if i > 0:
+                st.markdown("&nbsp;", unsafe_allow_html=True)
+
+            fdesc = row.get("factor_description", "")
+            st.markdown(f"**{fname}**: {safe_text(fdesc)}")
+
+            left_label  = safe_text(row.get("left_label"))  or "Weakness"
+            right_label = safe_text(row.get("right_label")) or "Strength"
+
+            vmin  = int(row.get("min", 0))
+            vmax  = int(row.get("max", 10))
+            vstep = int(row.get("step", 1))
+            vdef  = int((vmax + vmin) // 2)
+
+            user_scores[fid] = st.slider(
+                fname,
+                min_value=vmin,
+                max_value=vmax,
+                value=vdef,
+                step=vstep,
+                key=f"slider_{fid}",
+                label_visibility="collapsed"
+            )
+
+            st.markdown(
+                f"<div style='display:flex; justify-content:space-between; margin-top:-8px;'>"
+                f"<span style='font-size:0.8em; color:gray;'>{left_label}</span>"
+                f"<span style='font-size:0.8em; color:gray;'>{right_label}</span>"
+                "</div>",
+                unsafe_allow_html=True
+            )
 
 # -------------------------
 # CALCULATE SCORES
