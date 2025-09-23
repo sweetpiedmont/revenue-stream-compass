@@ -280,7 +280,7 @@ if not st.session_state.started:
     
     That’s not how this works.  
 
-    This process isn’t here to gatekeep your dream. It’s here to help you pursue it smarter. Keep in mind that every revenue stream has workarounds — and your results will point out both strengths and challenges.  
+    This process isn’t here to gatekeep your dream. It’s here to help you pursue it smarter. Keep in mind that every revenue stream has workarounds.  
     
     So be honest: don’t downplay your strengths, and don’t be afraid to reveal your challenges.
     """)
@@ -295,7 +295,6 @@ if not st.session_state.started:
         or how many other farms are nearby. Those matter — but they’ll affect you no matter which 
         sales channel you choose.  
 
-        
         This self-assessment focuses only on the factors that actually help you compare and choose 
         between different sales channels. If it’s not here, it’s not because it’s unimportant — 
         it’s because it won’t change which options are the best fit for you.
