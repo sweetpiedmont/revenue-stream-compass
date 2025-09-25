@@ -265,6 +265,7 @@ if "started" not in st.session_state:
 
 if not st.session_state.started:
     # Pre-amble
+    st.title("🌸 Welcome to Your Field Factors Self Assessment")
     st.markdown("""
     This short, structured quiz is designed to show which flower-farming revenue streams align with your strengths and resources.  
     """)
