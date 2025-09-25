@@ -681,7 +681,7 @@ else:
 
 # 🚧 DEV-ONLY: Preview a couple long narratives
 with st.expander("🚧 DEV ONLY: Preview Long Narratives for Paid Compass"):
-    preview_channels = ["Farmers Market", "Custom Weddings", "Workshops"]
+    preview_channels = ["Community and Corporate Events", "Workshops", "Wholesaling via a Collective"]
     for ch_name in preview_channels:
         st.markdown(f"### {ch_name}")
         st.write(long_narratives[ch_name])
