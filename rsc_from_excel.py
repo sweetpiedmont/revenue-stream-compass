@@ -346,19 +346,21 @@ def generate_channel_long_blurb(channel, strengths, weaknesses, borrowed=False):
 
     return response.output_text
 
-def render_navigation_page(data):
-    """Render a single revenue stream page for the Navigation Planner."""
+def render_navigation_page(channel_name, narrative, advantages, obstacles, rank, compass_link=None):
+    # Set up Jinja environment
+    env = Environment(loader=FileSystemLoader("templates"))
     template = env.get_template("revenue_stream_page.html")
-    return template.render(data)
 
-def render_navigation_planner(ranked_channels, narratives, user_scores, factors, narratives_df):
-    """
-    ranked_channels = DataFrame of top-to-bottom ranked channels (with scores).
-    narratives = dict of channel_name → long narrative text
-    user_scores = dict of factor_id → score
-    factors = DataFrame of factors (from Excel)
-    narratives_df = Narratives sheet (from Excel, has weights + blurbs)
-    """
+    # Render HTML with actual values
+    html = template.render(
+        RevenueStreamName=channel_name,
+        Narrative=narrative,
+        AdvantagesList=", ".join(advantages) if advantages else "None",
+        ObstaclesList=", ".join(obstacles) if obstacles else "None",
+        Rank=rank,
+        CompassLink=compass_link or ""
+    )
+    return html
 
     pages_html = []
 
