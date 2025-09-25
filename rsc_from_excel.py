@@ -7,11 +7,14 @@ import requests #needed for posting to Zapier
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
+from jinja2 import Environment, FileSystemLoader
 
 # Load API key from .env file
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+# Jinja2 environment for HTML templates
+env = Environment(loader=FileSystemLoader("templates"))
 
 # def strength_narrative(score, factor, base_blurb):
     #if score >= 7:
@@ -342,6 +345,55 @@ def generate_channel_long_blurb(channel, strengths, weaknesses, borrowed=False):
     )
 
     return response.output_text
+
+def render_navigation_page(data):
+    """Render a single revenue stream page for the Navigation Planner."""
+    template = env.get_template("revenue_stream_page.html")
+    return template.render(data)
+
+def render_navigation_planner(ranked_channels, narratives, user_scores, factors, narratives_df):
+    """
+    ranked_channels = DataFrame of top-to-bottom ranked channels (with scores).
+    narratives = dict of channel_name → long narrative text
+    user_scores = dict of factor_id → score
+    factors = DataFrame of factors (from Excel)
+    narratives_df = Narratives sheet (from Excel, has weights + blurbs)
+    """
+
+    pages_html = []
+
+    for rank, row in enumerate(ranked_channels.itertuples(), start=1):
+        channel = row.channel_name
+        score = row.score
+        narrative = narratives.get(channel, "⚠️ No narrative available.")
+
+        # --- Build factor highlights ---
+        df = narratives_df[(narratives_df["channel_name"] == channel) & (narratives_df["weight"] >= 4)].copy()
+        df["factor_id"] = df["factor_name"].map(slugify)
+        df["user_score"] = df["factor_id"].map(lambda fid: user_scores.get(fid, 0))
+
+        advantages = df[df["user_score"] >= 7]["factor_name"].tolist()
+        obstacles  = df[df["user_score"] <= 3]["factor_name"].tolist()
+
+        # If no strong advantages, borrow the “least weak” factors
+        if not advantages and not df.empty:
+            borrowed = df.sort_values("user_score", ascending=False).head(2)["factor_name"].tolist()
+            advantages = [f"(Relative) {x}" for x in borrowed]
+
+        data = {
+            "RevenueStreamName": channel,
+            "Narrative": narrative,
+            "Rank": rank,
+            "Compatibility": f"{score:.0%}",  # Example: 87%
+            "AdvantagesList": "".join([f"<div class='tag green'>{a}</div>" for a in advantages]),
+            "ObstaclesList": "".join([f"<div class='tag red'>{o}</div>" for o in obstacles]),
+        }
+
+        page_html = render_navigation_page(data)
+        pages_html.append(page_html)
+
+    # Combine all pages, separated by page breaks
+    return "<div style='page-break-after: always;'></div>".join(pages_html)
 
 # -------------------------
 # APP STARTS
@@ -691,4 +743,9 @@ with st.expander("🚧 DEV ONLY: Preview Long Narratives for Paid Compass"):
     for ch_name in preview_channels:
         st.markdown(f"### {ch_name}")
         st.write(long_narratives[ch_name])
-        st.markdown("---")    
+        st.markdown("---")
+
+# 🚧 DEV ONLY: Preview Navigation Planner HTML
+with st.expander("🚧 DEV ONLY: Preview Navigation Planner"):
+    planner_html = render_navigation_planner(rackstack, long_narratives, user_scores, factors, narratives)
+    st.components.v1.html(planner_html, height=800, scrolling=True)
