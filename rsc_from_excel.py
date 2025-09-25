@@ -36,7 +36,7 @@ def safe_text(val):
         return ""
     return str(val).strip()
 
-def get_channel_narrative(channel_name, narratives, user_scores):
+def get_channel_short_narrative (channel_name, narratives, user_scores):
     """
     Select top 2 strengths and 1 weakness for this channel,
     then feed them into the AI blurb generator.
@@ -564,7 +564,7 @@ st.header("🌟 Your Top 5 Revenue Streams")
 if 'top5' in locals() and not top5.empty:
     for _, r in top5.iterrows():
         channel = r["channel_name"]
-        blurb = get_channel_narrative(channel, narratives, user_scores)
+        short_narrative = get_channel_short_narrative(channel, narratives, user_scores)
         st.markdown(f"### {safe_text(channel)}")
         st.markdown(f"**Score:** {r['score']:.0%}")
         st.write(blurb)
