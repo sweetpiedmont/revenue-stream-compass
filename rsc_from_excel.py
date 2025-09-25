@@ -306,10 +306,6 @@ if not st.session_state.started:
     # Privacy + Consent
     consent = st.checkbox("🔒 I understand that my responses will be stored securely, "
                           "used only in aggregate for research, and never shared individually.")
-
-    # Show green confirmation when checked
-    if consent:
-        st.success("✅ Thank you — your responses will be included securely.")
     
     # Start button (only active if consent given)
     if st.button("🌟 I'm Ready — Let's Start My Self-Assessment!", disabled=not consent):
