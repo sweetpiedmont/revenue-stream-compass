@@ -38,8 +38,8 @@ def safe_text(val):
 
 def get_channel_short_narrative (channel_name, narratives, user_scores):
     """
-    Select top 2 strengths and 1 weakness for this channel,
-    then feed them into the AI blurb generator.
+    Generate the short narrative (~3–4 sentences) for lead magnet delivery.
+    Handles normal + edge cases, then calls generate_channel_blurb().
     """
     df = narratives[(narratives["channel_name"] == channel_name) & (narratives["weight"] >= 4)].copy()
     if df.empty:
