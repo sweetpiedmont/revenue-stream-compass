@@ -193,18 +193,14 @@ def load_from_excel(xlsx_path: Path):
     pivot.columns = ["channel_name"] + [f"f_{c}" for c in pivot.columns[1:]]
     pivot["channel_id"] = pivot["channel_name"].map(slugify)
 
-    # Join snippets
+    # Join snippets (only keep compass_link now)
     sn = snippets.rename(columns={
         "Revenue Stream": "channel_name",
-        "One-line Reason Template": "why_fit_short",
         "Compass Chapter Link/Slug": "compass_link",
     })
-    cols = [c for c in ["channel_name","why_fit_short","compass_link"] if c in sn.columns]
-    sn = sn[cols] if cols else pd.DataFrame(columns=["channel_name","why_fit_short","compass_link"])
+    cols = [c for c in ["channel_name","compass_link"] if c in sn.columns]
+    sn = sn[cols] if cols else pd.DataFrame(columns=["channel_name","compass_link"])
     channels = pivot.merge(sn, on="channel_name", how="left")
-    for col in ["tags","caveats","startup_cost","labor_level","cashflow_speed"]:
-        if col not in channels:
-            channels[col] = ""
 
     factor_cols = [c for c in channels.columns if c.startswith("f_")]
     channels[factor_cols] = channels[factor_cols].fillna(0.0)
