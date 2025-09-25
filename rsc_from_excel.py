@@ -634,12 +634,31 @@ if st.session_state.get("show_results", False):
     score_map = dict(zip(channels["channel_name"], ch["score"]))
     contribs["normalized_total"] = contribs.index.map(score_map)
 
-    # Choose which score to use here:
     rackstack = (
         ch.loc[:, ["channel_name", "fit_score", "coverage", "blend_score_70", "score"]]
             .sort_values("score", ascending=False)
             .reset_index(drop=True)
     )
+
+    # --- Build Navigation Planner pages (all 18 streams, ordered by rank) ---
+    planner_pages = []
+    for i, row in rackstack.iterrows():
+        ch_name = row["channel_name"]
+        rank = i + 1
+        narrative = long_narratives.get(ch_name, "")
+
+        # Get high/low user factors for this channel
+        df = narratives[(narratives["channel_name"] == ch_name) & (narratives["weight"] >= 4)].copy()
+        df["factor_id"] = df["factor_name"].map(slugify)
+        df["user_score"] = df["factor_id"].map(lambda fid: user_scores.get(fid, 0))
+
+        advantages = df[df["user_score"] >= 7]["factor_name"].tolist()
+        obstacles  = df[df["user_score"] <= 3]["factor_name"].tolist()
+
+        compass_link = ch.loc[ch["channel_name"] == ch_name, "compass_link"].values[0]
+
+        html = render_navigation_page(ch_name, narrative, advantages, obstacles, rank, compass_link)
+        planner_pages.append(html)
 
     # --- Show Top 5 ---
     # Global check: did the user leave all sliders the same?
@@ -649,6 +668,7 @@ if st.session_state.get("show_results", False):
             "Your results will be based only on how the Compass weights different Field Factors, not your unique situation. "
             "For a more meaningful result, try adjusting your scores so they’re not all identical."
         )
+
 
     top5 = rackstack.head(5)
     st.subheader("Your Top 5 Matches")
@@ -747,7 +767,7 @@ with st.expander("🚧 DEV ONLY: Preview Long Narratives for Paid Compass"):
         st.write(long_narratives[ch_name])
         st.markdown("---")
 
-# 🚧 DEV ONLY: Preview Navigation Planner HTML
 with st.expander("🚧 DEV ONLY: Preview Navigation Planner"):
-    planner_html = render_navigation_planner(rackstack, long_narratives, user_scores, factors, narratives)
-    st.components.v1.html(planner_html, height=800, scrolling=True)
+    for page in planner_pages[:3]:  # just show first 3 pages for testing
+        st.components.v1.html(page, height=500, scrolling=True)
+        st.markdown("---")
