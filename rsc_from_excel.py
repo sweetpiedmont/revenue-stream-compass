@@ -654,6 +654,8 @@ for channel in ch["channel_name"].unique():
         compass_link=slug
     )
 
+st.write("DEBUG: long_narratives built with", len(long_narratives), "entries")
+st.write("DEBUG: Sample entries", list(long_narratives.items())[:3])
 st.write("DEBUG: Keys in long_narratives", list(long_narratives.keys()))
 
 result = get_channel_long_narrative(channel, narratives, user_scores, compass_link=slug)
