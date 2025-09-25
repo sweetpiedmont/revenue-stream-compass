@@ -567,7 +567,7 @@ if 'top5' in locals() and not top5.empty:
         short_narrative = get_channel_short_narrative(channel, narratives, user_scores)
         st.markdown(f"### {safe_text(channel)}")
         st.markdown(f"**Score:** {r['score']:.0%}")
-        st.write(blurb)
+        st.write(short_narrative)
 
     # --- Full Rack & Stack (all channels, sorted) ---
     st.markdown("---")
