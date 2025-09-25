@@ -248,10 +248,6 @@ factors, categories, channels, narratives = load_from_excel(XLSX)
 # Safe default so any stray references won't crash before user clicks the button
 rackstack = pd.DataFrame(columns=["channel_name", "score"])
 
-# used when debugging and optimizing the math
-# st.write("DEBUG: Factor names from Excel")
-# st.json(factors["factor_name"].tolist())
-
 # -------------------------
 # PHASE 0: INTRO + TRUST SETUP
 # -------------------------
@@ -567,58 +563,3 @@ if 'top5' in locals() and not top5.empty:
     st.dataframe(rackstack_display[["channel_name", "Score"]])
 else:
     st.info("👉 Click **See my Top 5** above to generate your personalized results.")
-
-# -------------------------
-# DEBUGGING STUFF
-# -------------------------
-    
-    # 🚧 NOTE: Everything below is for internal dev/debug only.
-    # 🚧 Do NOT include this section in the free/lead magnet version.
-
-    #if debug_mode:
-        #st.markdown("---")
-        #st.markdown("### 🚧 DEV ONLY: Contribution & Rack & Stack 🚧")
-
-        # Show contribution breakdown as percentages
-        #st.markdown("#### Contribution Breakdown (as %)")
-        #contribs_pct = contribs.copy()
-        #factor_cols_only = [c for c in contribs.columns if c.startswith("f_")]
-
-        # Convert factor columns to percentages
-        #contribs_pct[factor_cols_only] = (contribs_pct[factor_cols_only] * 100).round(1)
-
-        # Rename factor columns back to human-friendly names
-        #factor_name_map = {
-            #f"f_{row['factor_id']}": row['factor_name']
-            #for _, row in factors.iterrows()
-        #}
-        #contribs_pct = contribs_pct.rename(columns=factor_name_map)
-
-        # Convert normalized_total to %
-        #contribs_pct["normalized_total"] = (contribs_pct["normalized_total"] * 100).round(1)
-
-        #st.dataframe(contribs_pct)
-
-        #st.markdown("#### All Channel Scores (Rack & Stack)")
-        #st.dataframe(rackstack)
-
-    # Debugging output removed for production
-# if debug_mode:
-#     if debug_mode:
-        #raw_contribs = channels[factor_cols].values * uw_aligned.values
-        #max_contribs = channels[factor_cols].values * 10.0
-        #norm_contribs = np.divide(raw_contribs, max_contribs,
-                                  #out=np.zeros_like(raw_contribs),
-                                  #where=max_contribs != 0)
-
-        #contribs = pd.DataFrame(norm_contribs, columns=factor_cols,
-                                #index=channels["channel_name"])
-        #score_map = dict(zip(channels["channel_name"], ch["score"]))
-        #contribs["normalized_total"] = contribs.index.map(score_map)
-        #contribs["normalized_score"] = contribs["normalized_total"]
-
-        #st.markdown("### Debug: Contribution Breakdown (focus channels)")
-        #st.dataframe(contribs.sort_values("normalized_score", ascending=False))
-
-#adding this comment to test commit in VS Code
-
