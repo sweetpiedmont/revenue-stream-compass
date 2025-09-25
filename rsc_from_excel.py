@@ -656,6 +656,11 @@ for channel in ch["channel_name"].unique():
 
 st.write("DEBUG: Keys in long_narratives", list(long_narratives.keys()))
 
+result = get_channel_long_narrative(channel, narratives, user_scores, compass_link=slug)
+if not result:
+    result = f"(⚠️ No narrative generated for {channel})"
+long_narratives[channel] = result
+
 # -------------------------
 # DEV/TEST OUTPUT (not shown in final lead magnet)
 # -------------------------
