@@ -479,13 +479,6 @@ if st.session_state.get("show_results", False):
     )
     score_map = dict(zip(channels["channel_name"], ch["score"]))
     contribs["normalized_total"] = contribs.index.map(score_map)
-    
-    def top_strengths_weaknesses(channel_name, n=2):
-        row = contribs.loc[channel_name, factor_cols]
-        sorted_factors = row.sort_values(ascending=False)
-        strengths = sorted_factors.head(n).index.tolist()
-        weaknesses = sorted_factors.tail(n).index.tolist()
-        return strengths, weaknesses
 
     # Choose which score to use here:
     rackstack = (
