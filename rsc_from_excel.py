@@ -643,6 +643,17 @@ if st.session_state.get("show_results", False):
 
     st.info("✅ This block is DEV-only. This info will be put into a personalized pdf that gets sent via email.")
 
+# --- Build long narratives for ALL 18 channels (paid Compass only) ---
+long_narratives = {}
+for channel in ch["channel_name"].unique():
+    slug = ch.loc[ch["channel_name"] == channel, "compass_link"].values[0]
+    long_narratives[channel] = get_channel_long_narrative(
+        channel,
+        narratives,
+        user_scores,
+        compass_link=slug
+    )
+
 # -------------------------
 # DEV/TEST OUTPUT (not shown in final lead magnet)
 # -------------------------
@@ -667,3 +678,11 @@ if 'top5' in locals() and not top5.empty:
     st.dataframe(rackstack_display[["channel_name", "Score"]])
 else:
     st.info("👉 Click **See my Top 5** above to generate your personalized results.")
+
+# 🚧 DEV-ONLY: Preview a couple long narratives
+with st.expander("🚧 DEV ONLY: Preview Long Narratives for Paid Compass"):
+    preview_channels = ["Farmers Market", "Custom Weddings", "Workshops"]
+    for ch_name in preview_channels:
+        st.markdown(f"### {ch_name}")
+        st.write(long_narratives[ch_name])
+        st.markdown("---")    
