@@ -654,6 +654,8 @@ for channel in ch["channel_name"].unique():
         compass_link=slug
     )
 
+st.write("DEBUG: Keys in long_narratives", list(long_narratives.keys()))
+
 # -------------------------
 # DEV/TEST OUTPUT (not shown in final lead magnet)
 # -------------------------
