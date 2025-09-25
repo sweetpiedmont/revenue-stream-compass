@@ -273,7 +273,7 @@ if not st.session_state.started:
     # Honesty reminder
     st.subheader("A quick but important note before you begin")
     st.markdown("""
-    👉 This isn’t a test, and there are no “good” or “bad” answers. The more honest you are, the more useful your results will be. 
+    👉 There are no “good” or “bad” answers. The more honest you are, the more useful your results will be. 
     
     It may be tempting to nudge your scores toward the revenue stream you think you want to pursue — or 
     soften your answers because you’re worried a low score means you can’t pursue it.  
