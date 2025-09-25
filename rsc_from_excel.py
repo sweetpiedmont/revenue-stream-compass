@@ -374,14 +374,13 @@ else:
                 unsafe_allow_html=True
             )
 
+    st.markdown("---")
+    if st.button("See My Top 5"):
+        st.session_state.show_results = True
+
 # -------------------------
 # CALCULATE SCORES
 # -------------------------
-st.markdown("---")
-
-# Button sets a flag in session_state
-if st.button("See my Top 5"):
-    st.session_state.show_results = True
 
 # Only run calculations if flag is set
 if st.session_state.get("show_results", False):
