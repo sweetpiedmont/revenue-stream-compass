@@ -272,14 +272,14 @@ if not st.session_state.started:
     # Honesty reminder
     st.subheader("A quick but important note before you begin")
     st.markdown("""
-    👉 This isn’t a test, and there are no “good” or “bad” answers.  
+    👉 This isn’t a test, and there are no “good” or “bad” answers. The more honest you are, the more useful your results will be. 
     
-    The more honest you are, the more useful your results will be. It may be tempting to nudge your scores toward the revenue stream you think you want — or 
+    It may be tempting to nudge your scores toward the revenue stream you think you want to pursue — or 
     soften your answers because you’re worried a low score means you can’t pursue it.  
     
     That’s not how this works.  
 
-    This process isn’t here to gatekeep your dream. It’s here to help you pursue it smarter. Keep in mind that every revenue stream has workarounds.  
+    This process isn’t here to gatekeep your dream. It’s here to help you pursue it smarter. Even if you've got low scores in critical areas, we're here to help you find workarounds.  
     
     So be honest: don’t downplay your strengths, and don’t be afraid to reveal your challenges.
     """)
