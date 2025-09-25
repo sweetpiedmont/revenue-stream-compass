@@ -239,6 +239,110 @@ def generate_channel_blurb(channel, strengths, weakness, reasons):
 
     return response.output_text
 
+# ------------------------
+# LONG NARRATIVES
+# ------------------------
+def get_channel_long_narrative(channel_name, narratives, user_scores, compass_link=None):
+    """
+    Generate the long narrative (~2 short paragraphs) for paid Compass customers.
+    - Uses ALL factors with weight >= 4.
+    - Groups into strengths (score >= 7), weaknesses (score <= 3).
+    - If no strengths, will borrow from neutral factors (scores 4–6),
+      but clearly labeled as 'relative strengths'.
+    - Includes optional Guidebook/Compass chapter link at the end if provided.
+    """
+
+    # Filter to factors for this channel with weight >= 4
+    df = narratives[(narratives["channel_name"] == channel_name) & (narratives["weight"] >= 4)].copy()
+    if df.empty:
+        return f"No narrative data available for {channel_name}."
+
+    # Add user scores
+    df["factor_id"] = df["factor_name"].map(slugify)
+    df["user_score"] = df["factor_id"].map(lambda fid: user_scores.get(fid, 0))
+
+    # Split into groups
+    strengths = df[df["user_score"] >= 7]
+    weaknesses = df[df["user_score"] <= 3]
+    neutrals   = df[(df["user_score"] >= 4) & (df["user_score"] <= 6)]
+
+    # Handle case where no true strengths exist
+    if strengths.empty and not neutrals.empty:
+        strengths = neutrals.sort_values("user_score", ascending=False).head(2)
+        borrowed = True
+    else:
+        borrowed = False
+
+    # Convert to list of dicts
+    strengths_list = strengths.to_dict("records")
+    weaknesses_list = weaknesses.to_dict("records")
+
+    # Call the generator
+    long_blurb = generate_channel_long_blurb(
+        channel=channel_name,
+        strengths=strengths_list,
+        weaknesses=weaknesses_list,
+        borrowed=borrowed
+    )
+
+    # Add Guidebook link if available
+    if compass_link:
+        long_blurb += f"\n\n📖 Read more in your Compass Guidebook: {compass_link}"
+
+    return long_blurb
+
+
+def generate_channel_long_blurb(channel, strengths, weaknesses, borrowed=False):
+    """
+    Utility for long narratives.
+    Takes lists of strengths and weaknesses, builds the AI prompt,
+    and returns a ~2-paragraph narrative.
+    """
+
+    strengths_text = "\n".join([
+        f"- {s['factor_name']}: {s['strength_blurb']}" for s in strengths
+    ]) if strengths else "None"
+
+    weaknesses_text = "\n".join([
+        f"- {w['factor_name']}: {w['weakness_blurb']}" for w in weaknesses
+    ]) if weaknesses else "None"
+
+    borrowed_note = (
+        "Note: These aren’t true strengths — they are simply the relatively stronger factors "
+        "from your self-assessment that still play a role for this revenue stream."
+        if borrowed else ""
+    )
+
+    prompt = f"""
+    Write a detailed, authoritative narrative for a flower farmer about their fit for this revenue stream.
+
+    Channel: {channel}
+
+    Strengths:
+    {strengths_text}
+
+    Weaknesses:
+    {weaknesses_text}
+
+    Guidelines:
+    - Write 2 short paragraphs (6–10 sentences total).
+    - Use direct "you/your" language.
+    - Clearly explain how the strengths contribute to success in this stream.
+    - Clearly explain how the weaknesses might create challenges.
+    - If strengths were borrowed (see below), make that distinction explicit.
+    - Tone: supportive, expert, and practical (not fluffy).
+    - Do NOT suggest specific fixes or workarounds here (those live in the Guidebook).
+
+    Borrowed strengths note: {borrowed_note}
+    """
+
+    response = client.responses.create(
+        model="gpt-4.1-mini",
+        input=prompt
+    )
+
+    return response.output_text
+
 # -------------------------
 # APP STARTS
 # -------------------------
