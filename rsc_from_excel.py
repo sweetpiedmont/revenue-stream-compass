@@ -13,9 +13,6 @@ from jinja2 import Environment, FileSystemLoader
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# Jinja2 environment for HTML templates
-env = Environment(loader=FileSystemLoader("templates"))
-
 # def strength_narrative(score, factor, base_blurb):
     #if score >= 7:
         #return f"Your strong {factor} makes this stream a natural fit. {base_blurb}"
