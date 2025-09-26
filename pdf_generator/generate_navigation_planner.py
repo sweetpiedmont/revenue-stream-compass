@@ -7,13 +7,13 @@ from weasyprint import HTML
 # Set up Jinja environment (points to templates folder)
 env = Environment(loader=FileSystemLoader("templates"))
 
-def render_navigation_html(user_name, top5, rackstack):
+def render_navigation_html(user_name, top5, channels):
     """Render HTML from Jinja template with given data."""
     template = env.get_template("planner.html")
     return template.render(
         user_name=user_name,
         top5=top5,
-        rackstack=rackstack,
+        channels=channels,
     )
 
 def generate_pdf(user_name, top5, rackstack, outpath="planner.pdf"):
@@ -25,11 +25,23 @@ if __name__ == "__main__":
     # Fake test data
     user_name = "Test User"
     top5 = ["Workshops", "Full Service Weddings", "Farmers Markets", "Subscriptions", "DIY Buckets"]
-    rackstack = [
-        ("Workshops", 0.95),
-        ("Full Service Weddings", 0.92),
-        ("Farmers Markets", 0.75),
-        ("Subscriptions", 0.67),
-        ("DIY Buckets", 0.60),
+ 
+ # Fake channel data (simulate 2 channels for now)
+    channels = [
+        {
+            "name": "Workshops",
+            "score": 0.95,
+            "narrative": "Workshops are a great way to engage directly with your community and generate steady income.",
+            "advantages": ["Direct customer interaction", "High margins", "Community building"],
+            "obstacles": ["Requires teaching skills", "Marketing is critical", "Seasonal interest may vary"],
+        },
+        {
+            "name": "Full Service Weddings",
+            "score": 0.92,
+            "narrative": "Full service weddings provide high revenue but demand detailed planning and reliable staffing.",
+            "advantages": ["High profit potential", "Strong demand", "Creative freedom"],
+            "obstacles": ["High stress events", "Lots of moving parts", "Requires design expertise"],
+        },
     ]
-    generate_pdf(user_name, top5, rackstack)
+
+    generate_pdf(user_name, top5, channels)
