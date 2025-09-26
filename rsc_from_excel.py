@@ -352,11 +352,12 @@ def render_navigation_page(channel_name, narrative, advantages, obstacles, rank,
     html = template.render(
         RevenueStreamName=channel_name,
         Narrative=narrative,
-        AdvantagesList=", ".join(advantages) if advantages else "None",
-        ObstaclesList=", ".join(obstacles) if obstacles else "None",
+        AdvantagesList=advantages,   # pass as list
+        ObstaclesList=obstacles,     # pass as list
         Rank=rank,
         CompassLink=compass_link or ""
     )
+
     return html
 
     pages_html = []
