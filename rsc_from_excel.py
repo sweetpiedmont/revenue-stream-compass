@@ -714,12 +714,45 @@ if st.session_state.get("show_results", False):
 
     st.info("✅ This block is DEV-only. This info will be put into a personalized pdf that gets sent via email.")
 
-st.write("DEBUG: Sample entries", list(long_narratives.items())[:3])
-
 result = get_channel_long_narrative(channel, narratives, user_scores, compass_link=slug)
 if not result:
     result = f"(⚠️ No narrative generated for {channel})"
 long_narratives[channel] = result
+
+from weasyprint import HTML
+
+def save_navigation_planner_pdf(pages_html, filename="navigation_planner.pdf"):
+    """
+    Takes a list of rendered HTML pages and saves them as a single PDF.
+    Each page will be separated with a page break.
+    """
+    # Join pages with explicit page breaks
+    full_html = "<div style='page-break-after: always;'></div>".join(pages_html)
+
+    # Wrap with <html> so WeasyPrint renders correctly
+    full_html = f"""
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <style>
+            body {{ font-family: Arial, sans-serif; margin: 40px; }}
+            h1 {{ font-size: 22px; margin-bottom: 10px; }}
+            h2 {{ font-size: 18px; margin-top: 20px; }}
+            .narrative {{ margin: 20px 0; line-height: 1.5; }}
+            .factors {{ display: flex; justify-content: space-between; margin-top: 20px; }}
+            .advantages, .obstacles {{ width: 45%; }}
+            .tag {{ display: inline-block; margin: 5px; padding: 6px 10px; border-radius: 6px; font-size: 14px; }}
+        </style>
+    </head>
+    <body>
+        {full_html}
+    </body>
+    </html>
+    """
+
+    # Render to PDF
+    HTML(string=full_html).write_pdf(filename)
+    return filename
 
 # -------------------------
 # DEV/TEST OUTPUT (not shown in final lead magnet)
@@ -747,14 +780,19 @@ else:
     st.info("👉 Click **See my Top 5** above to generate your personalized results.")
 
 # 🚧 DEV-ONLY: Preview a couple long narratives
-with st.expander("🚧 DEV ONLY: Preview Long Narratives for Paid Compass"):
-    preview_channels = ["Community and Corporate Events", "Workshops", "Wholesaling via a Collective"]
-    for ch_name in preview_channels:
-        st.markdown(f"### {ch_name}")
-        st.write(long_narratives[ch_name])
-        st.markdown("---")
 
 with st.expander("🚧 DEV ONLY: Preview Navigation Planner"):
     for page in planner_pages[:3]:  # just show first 3 pages for testing
         st.components.v1.html(page, height=500, scrolling=True)
         st.markdown("---")
+
+if st.button("🚧 DEV ONLY: Generate PDF Now"):
+    pdf_file = save_navigation_planner_pdf(planner_pages)
+    st.success(f"PDF generated: {pdf_file}")
+    with open(pdf_file, "rb") as f:
+        st.download_button(
+            label="⬇️ Download Navigation Planner PDF",
+            data=f,
+            file_name="navigation_planner.pdf",
+            mime="application/pdf"
+        )
