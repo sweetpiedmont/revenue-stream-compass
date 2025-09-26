@@ -716,13 +716,18 @@ if st.session_state.get("show_results", False):
 
             # Final JSON payload
             payload = {
-                "user_id": user_id,
+                "user_id": str(uuid.uuid4()),
                 "email": email,
                 "first_name": first_name,
                 "last_name": last_name,
                 "farm_name": farm_name,
-                "top5": top5_with_narratives,
-                "all_streams": all_streams
+                "top5": json.dumps([
+                    {"name": c, "score": float(s)} for c, s in top_5
+                ]),
+                "all_streams": json.dumps([
+                    {"name": row["channel_name"], "rank": int(i+1)}
+                    for i, row in rackstack.iterrows()
+                ])
             }
 
             try:
