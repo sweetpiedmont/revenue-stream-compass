@@ -15,18 +15,34 @@
   </style>
 </head>
 <body>
-  <h1>{RevenueStreamName}</h1>
-  <div class="narrative">{Narrative}</div>
+  <h1>{{ Rank }}. {{ RevenueStreamName }}</h1>
+  <div class="narrative">{{ Narrative }}</div>
 
   <div class="factors">
     <div class="advantages">
       <h2>💪 Advantages</h2>
-      {AdvantagesList}
+      {% if AdvantagesList %}
+        {% for adv in AdvantagesList %}
+          <div class="tag">{{ adv }}</div>
+        {% endfor %}
+      {% else %}
+        <p>None</p>
+      {% endif %}
     </div>
     <div class="obstacles">
       <h2>⚡ Obstacles</h2>
-      {ObstaclesList}
+      {% if ObstaclesList %}
+        {% for obs in ObstaclesList %}
+          <div class="tag">{{ obs }}</div>
+        {% endfor %}
+      {% else %}
+        <p>None</p>
+      {% endif %}
     </div>
   </div>
+
+  {% if CompassLink %}
+    <p>📖 Read more in your Compass Guidebook: {{ CompassLink }}</p>
+  {% endif %}
 </body>
 </html>
