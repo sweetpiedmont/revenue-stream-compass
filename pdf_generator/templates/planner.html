@@ -6,24 +6,34 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 2rem;
-            line-height: 1.4;
+            margin: 1.5in 1in 1.5in 1in;
+            line-height: 1.5;
         }
-        h1 {
+        h1, h2 {
             color: #4a148c;
         }
-        h2 {
-            margin-top: 1.5rem;
+        h3 {
             color: #00695c;
+            margin-bottom: 0.3rem;
         }
-        ul, ol {
-            margin-left: 2rem;
+        .section {
+            margin-bottom: 1.2rem;
+        }
+        .box {
+            border: 2px solid #ccc;
+            padding: 0.6rem;
+            border-radius: 8px;
+            margin: 0.5rem 0;
+            background-color: #f9f9f9;
+        }
+        .page-break {
+            page-break-before: always;
         }
     </style>
 </head>
 <body>
+    <!-- Title page -->
     <h1>Navigation Planner for {{ user_name }}</h1>
-
     <h2>Top 5 Streams</h2>
     <ul>
         {% for stream in top5 %}
@@ -31,11 +41,39 @@
         {% endfor %}
     </ul>
 
-    <h2>Full Rackstack</h2>
-    <ol>
-        {% for stream, score in rackstack %}
-        <li>{{ stream }}: {{ (score * 100) | round(0) }}%</li>
-        {% endfor %}
-    </ol>
+    <!-- One page per channel -->
+    {% for channel in channels %}
+    <div class="page-break"></div>
+
+    <h2>{{ loop.index }}. {{ channel.name }} ({{ (channel.score * 100) | round(0) }}%)</h2>
+    <p><em>Ranked #{{ loop.index }} of {{ channels|length }}</em></p>
+
+    <div class="section">
+        <h3>Narrative</h3>
+        <p>{{ channel.narrative }}</p>
+    </div>
+
+    <div class="section">
+        <h3>Advantages</h3>
+        <div class="box">
+            <ul>
+            {% for adv in channel.advantages %}
+                <li>{{ adv }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>Obstacles</h3>
+        <div class="box">
+            <ul>
+            {% for obs in channel.obstacles %}
+                <li>{{ obs }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endfor %}
 </body>
 </html>
