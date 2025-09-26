@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Navigation Planner</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 2rem;
+            line-height: 1.4;
+        }
+        h1 {
+            color: #4a148c;
+        }
+        h2 {
+            margin-top: 1.5rem;
+            color: #00695c;
+        }
+        ul, ol {
+            margin-left: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>Navigation Planner for {{ user_name }}</h1>
+
+    <h2>Top 5 Streams</h2>
+    <ul>
+        {% for stream in top5 %}
+        <li>{{ stream }}</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Full Rackstack</h2>
+    <ol>
+        {% for stream, score in rackstack %}
+        <li>{{ stream }}: {{ (score * 100) | round(0) }}%</li>
+        {% endfor %}
+    </ol>
+</body>
+</html>
