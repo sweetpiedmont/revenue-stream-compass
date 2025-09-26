@@ -635,8 +635,15 @@ if st.session_state.get("show_results", False):
         df["factor_id"] = df["factor_name"].map(slugify)
         df["user_score"] = df["factor_id"].map(lambda fid: user_scores.get(fid, 0))
 
-        advantages = df[df["user_score"] >= 7]["factor_name"].tolist()
-        obstacles  = df[df["user_score"] <= 3]["factor_name"].tolist()
+        advantages = [
+            (fname, factor_to_color.get(fname, "#d9fdd3"))  # default greenish if missing
+            for fname in df[df["user_score"] >= 7]["factor_name"].tolist()
+        ]
+
+        obstacles = [
+            (fname, factor_to_color.get(fname, "#fdd3d3"))  # default reddish if missing
+            for fname in df[df["user_score"] <= 3]["factor_name"].tolist()
+        ]
 
         compass_link = ch.loc[ch["channel_name"] == ch_name, "compass_link"].values[0]
 
