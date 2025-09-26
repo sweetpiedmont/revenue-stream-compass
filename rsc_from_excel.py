@@ -360,46 +360,11 @@ def render_navigation_page(channel_name, narrative, advantages, obstacles, rank,
 
     return html
 
-    pages_html = []
-
-    for rank, row in enumerate(ranked_channels.itertuples(), start=1):
-        channel = row.channel_name
-        score = row.score
-        narrative = narratives.get(channel, "⚠️ No narrative available.")
-
-        # --- Build factor highlights ---
-        df = narratives_df[(narratives_df["channel_name"] == channel) & (narratives_df["weight"] >= 4)].copy()
-        df["factor_id"] = df["factor_name"].map(slugify)
-        df["user_score"] = df["factor_id"].map(lambda fid: user_scores.get(fid, 0))
-
-        advantages = df[df["user_score"] >= 7]["factor_name"].tolist()
-        obstacles  = df[df["user_score"] <= 3]["factor_name"].tolist()
-
-        # If no strong advantages, borrow the “least weak” factors
-        if not advantages and not df.empty:
-            borrowed = df.sort_values("user_score", ascending=False).head(2)["factor_name"].tolist()
-            advantages = [f"(Relative) {x}" for x in borrowed]
-
-        data = {
-            "RevenueStreamName": channel,
-            "Narrative": narrative,
-            "Rank": rank,
-            "Compatibility": f"{score:.0%}",  # Example: 87%
-            "AdvantagesList": "".join([f"<div class='tag green'>{a}</div>" for a in advantages]),
-            "ObstaclesList": "".join([f"<div class='tag red'>{o}</div>" for o in obstacles]),
-        }
-
-        page_html = render_navigation_page(data)
-        pages_html.append(page_html)
-
-    # Combine all pages, separated by page breaks
-    return "<div style='page-break-after: always;'></div>".join(pages_html)
-
 # -------------------------
 # APP STARTS
 # -------------------------
 
-factors, categories, channels, narratives = load_from_excel(XLSX)
+factors, categories, channels, narratives, factor_to_color  = load_from_excel(XLSX)
 
 # Build factor → category color map
 factor_to_category = dict(zip(factor_meta["factor_name"], factor_meta["category_name"]))
