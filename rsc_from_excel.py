@@ -364,15 +364,17 @@ def render_navigation_page(channel_name, narrative, advantages, obstacles, rank,
 # APP STARTS
 # -------------------------
 
-factors, categories, channels, narratives, factor_to_color = load_from_excel(XLSX)
+factors, categories, channels, narratives = load_from_excel(XLSX)
 
 # Build factor → category color map
 factor_to_category = dict(zip(factor_meta["factor_name"], factor_meta["category_name"]))
 category_to_color = dict(zip(categories["category_name"], categories["category_color"]))
 
 # Factor to color map (using category link)
-factor_to_color = {f: category_to_color.get(cat, "#cccccc") 
-                   for f, cat in factor_to_category.items()}
+factor_to_color = {
+    f: category_to_color.get(cat, "#cccccc") 
+    for f, cat in factor_to_category.items()
+}
 
 
 # Safe default so any stray references won't crash before user clicks the button
