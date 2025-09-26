@@ -722,10 +722,15 @@ if st.session_state.get("show_results", False):
                 "last_name": last_name,
                 "farm_name": farm_name,
                 "top5": json.dumps([
-                    {"name": c, "score": float(s)} for c, s in top_5
+                    {
+                        "name": c,
+                        "score": float(s),
+                        "short_narrative": get_channel_short_narrative(c, narratives, user_scores)
+                    }
+                    for c, s in top_5
                 ]),
                 "all_streams": json.dumps([
-                    {"name": row["channel_name"], "rank": int(i+1)}
+                    {"name": row["channel_name"], "rank": i+1}
                     for i, row in rackstack.iterrows()
                 ])
             }
