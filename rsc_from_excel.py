@@ -8,6 +8,8 @@ import os
 from openai import OpenAI
 from dotenv import load_dotenv
 from jinja2 import Environment, FileSystemLoader
+import uuid
+import json
 
 # Load API key from .env file
 load_dotenv()
@@ -690,17 +692,39 @@ if st.session_state.get("show_results", False):
         farm_name = st.text_input("Farm Name (optional)")
         email = st.text_input("Email Address (required)")
 
-        submitted = st.form_submit_button("Send Me My Report")
+        submitted = st.form_submit_button("Send me my mini report")
 
         if submitted and email and first_name:
             zapier_webhook_url = "https://hooks.zapier.com/hooks/catch/19897729/ud9fr8n/"
+            # Generate a unique user_id for this run
+            user_id = str(uuid.uuid4())
+
+            # Build Top 5 with short narratives
+            top5_with_narratives = []
+            for c, s in top_5:
+                short_blurb = get_channel_short_narrative(c, narratives, user_scores)
+                top5_with_narratives.append({
+                    "name": c,
+                    "short_narrative": short_blurb
+                })
+
+            # Build full ranked list (names only, with rank)
+            all_streams = [
+                {"name": row["channel_name"], "rank": i + 1}
+                for i, row in rackstack.iterrows()
+            ]
+
+            # Final JSON payload
             payload = {
+                "user_id": user_id,
                 "email": email,
                 "first_name": first_name,
                 "last_name": last_name,
                 "farm_name": farm_name,
-                "top5": [c for c, s in top_5]
+                "top5": top5_with_narratives,
+                "all_streams": all_streams
             }
+
             try:
                 st.write("📡 Sending payload:", payload)   # Debug
                 r = requests.post(zapier_webhook_url, json=payload)
