@@ -641,6 +641,16 @@ if st.session_state.get("show_results", False):
     )
 
     # --- Build Navigation Planner pages (all 18 streams, ordered by rank) ---
+    # --- Build long narratives for ALL 18 channels (paid Compass only) ---
+    long_narratives = {}
+    for channel in ch["channel_name"].unique():
+        slug = ch.loc[ch["channel_name"] == channel, "compass_link"].values[0]
+        long_narratives[channel] = get_channel_long_narrative(
+            channel,
+            narratives,
+            user_scores,
+        )
+
     planner_pages = []
     for i, row in rackstack.iterrows():
         ch_name = row["channel_name"]
@@ -668,7 +678,6 @@ if st.session_state.get("show_results", False):
             "Your results will be based only on how the Compass weights different Field Factors, not your unique situation. "
             "For a more meaningful result, try adjusting your scores so they’re not all identical."
         )
-
 
     top5 = rackstack.head(5)
     st.subheader("Your Top 5 Matches")
@@ -716,16 +725,6 @@ if st.session_state.get("show_results", False):
                 st.error(f"⚠️ Connection failed: {e}")
 
     st.info("✅ This block is DEV-only. This info will be put into a personalized pdf that gets sent via email.")
-
-# --- Build long narratives for ALL 18 channels (paid Compass only) ---
-long_narratives = {}
-for channel in ch["channel_name"].unique():
-    slug = ch.loc[ch["channel_name"] == channel, "compass_link"].values[0]
-    long_narratives[channel] = get_channel_long_narrative(
-        channel,
-        narratives,
-        user_scores,
-    )
 
 st.write("DEBUG: Sample entries", list(long_narratives.items())[:3])
 
