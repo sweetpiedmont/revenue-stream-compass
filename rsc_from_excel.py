@@ -664,8 +664,16 @@ if st.session_state.get("show_results", False):
 
         compass_link = ch.loc[ch["channel_name"] == ch_name, "compass_link"].values[0]
 
-        html = render_navigation_page(ch_name, narrative, advantages, obstacles, rank, compass_link)
-        planner_pages.append(html)
+        # Render HTML for this page
+        page_html = render_navigation_page(
+            channel_name=ch_name,
+            narrative=narrative,
+            advantages=advantages,
+            obstacles=obstacles,
+            rank=rank,
+            compass_link=compass_link,
+        )
+        planner_pages.append(page_html)
 
     # --- Show Top 5 ---
     # Global check: did the user leave all sliders the same?
