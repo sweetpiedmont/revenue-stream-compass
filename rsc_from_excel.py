@@ -697,6 +697,9 @@ if st.session_state.get("show_results", False):
         if submitted and email and first_name:
             zapier_webhook_url = "https://hooks.zapier.com/hooks/catch/19897729/ud9fr8n/"
 
+            # Generate a unique user_id for this run
+            user_id = str(uuid.uuid4())
+
             # Build Top 5 with short narratives
             top5_with_narratives = []
             for c, s in top_5:
