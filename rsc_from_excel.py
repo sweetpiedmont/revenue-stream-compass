@@ -205,7 +205,7 @@ def load_from_excel(xlsx_path: Path):
     factor_cols = [c for c in channels.columns if c.startswith("f_")]
     channels[factor_cols] = channels[factor_cols].fillna(0.0)
 
-    return factors, categories, channels, narratives, factor_to_color
+    return factors, categories, channels, narratives
 
 #def test_api():
     #response = client.responses.create(
@@ -367,15 +367,14 @@ def render_navigation_page(channel_name, narrative, advantages, obstacles, rank,
 factors, categories, channels, narratives = load_from_excel(XLSX)
 
 # Build factor → category color map
-factor_to_category = dict(zip(factor_meta["factor_name"], factor_meta["category_name"]))
+factor_to_category = dict(zip(factors["factor_name"], factors["category_name"]))
 category_to_color = dict(zip(categories["category_name"], categories["category_color"]))
 
 # Factor to color map (using category link)
 factor_to_color = {
-    f: category_to_color.get(cat, "#cccccc") 
+    f: category_to_color.get(cat, "#cccccc")
     for f, cat in factor_to_category.items()
 }
-
 
 # Safe default so any stray references won't crash before user clicks the button
 rackstack = pd.DataFrame(columns=["channel_name", "score"])
