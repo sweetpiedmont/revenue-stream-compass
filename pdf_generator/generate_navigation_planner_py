@@ -1,0 +1,42 @@
+# generate_navigation_planner.py
+
+from pathlib import Path
+from weasyprint import HTML
+
+def render_navigation_html(user_name, top5, rackstack):
+    """Temporary fake HTML generator for testing."""
+    # Later we’ll replace this with your Jinja template + real data
+    return f"""
+    <html>
+    <head><title>Navigation Planner</title></head>
+    <body>
+        <h1>Navigation Planner for {user_name}</h1>
+        <h2>Top 5 Streams</h2>
+        <ul>
+            {''.join(f"<li>{c}</li>" for c in top5)}
+        </ul>
+        <h2>Full Rackstack</h2>
+        <ol>
+            {''.join(f"<li>{c}: {score:.0%}</li>" for c, score in rackstack)}
+        </ol>
+    </body>
+    </html>
+    """
+
+def generate_pdf(user_name, top5, rackstack, outpath="planner.pdf"):
+    html = render_navigation_html(user_name, top5, rackstack)
+    HTML(string=html).write_pdf(outpath)
+    print(f"✅ PDF written to {outpath}")
+
+if __name__ == "__main__":
+    # Fake data for now
+    user_name = "Test User"
+    top5 = ["Workshops", "Full Service Weddings", "Farmers Markets", "Subscriptions", "DIY Buckets"]
+    rackstack = [
+        ("Workshops", 0.95),
+        ("Full Service Weddings", 0.92),
+        ("Farmers Markets", 0.75),
+        ("Subscriptions", 0.67),
+        ("DIY Buckets", 0.60),
+    ]
+    generate_pdf(user_name, top5, rackstack)
