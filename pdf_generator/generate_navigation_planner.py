@@ -16,8 +16,8 @@ def render_navigation_html(user_name, top5, channels):
         channels=channels,
     )
 
-def generate_pdf(user_name, top5, rackstack, outpath="planner.pdf"):
-    html_content = render_navigation_html(user_name, top5, rackstack)
+def generate_pdf(user_name, top5, channels, outpath="planner.pdf"):
+    html_content = render_navigation_html(user_name, top5, channels)
     HTML(string=html_content).write_pdf(outpath)
     print(f"✅ PDF written to {outpath}")
 
