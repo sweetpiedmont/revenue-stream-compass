@@ -19,26 +19,20 @@
   <div class="narrative">{{ Narrative }}</div>
 
   <div class="factors">
-    <div class="advantages">
-      <h2>💪 Advantages</h2>
-      {% if AdvantagesList %}
-        {% for adv in AdvantagesList %}
-          <div class="tag">{{ adv }}</div>
-        {% endfor %}
-      {% else %}
-        <p>None</p>
-      {% endif %}
-    </div>
-    <div class="obstacles">
-      <h2>⚡ Obstacles</h2>
-      {% if ObstaclesList %}
-        {% for obs in ObstaclesList %}
-          <div class="tag">{{ obs }}</div>
-        {% endfor %}
-      {% else %}
-        <p>None</p>
-      {% endif %}
-    </div>
+<div class="advantages">
+  <h2>💪 Advantages</h2>
+  {% for adv, color in AdvantagesList %}
+    <div class="tag" style="background-color: {{ color }};">{{ adv }}</div>
+  {% endfor %}
+</div>
+
+<div class="obstacles">
+  <h2>⚡ Obstacles</h2>
+  {% for obs, color in ObstaclesList %}
+    <div class="tag" style="background-color: {{ color }};">{{ obs }}</div>
+  {% endfor %}
+</div>
+
   </div>
 
   {% if CompassLink %}
