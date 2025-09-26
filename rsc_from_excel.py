@@ -364,7 +364,7 @@ def render_navigation_page(channel_name, narrative, advantages, obstacles, rank,
 # APP STARTS
 # -------------------------
 
-factors, categories, channels, narratives, factor_to_color  = load_from_excel(XLSX)
+factors, categories, channels, narratives, factor_to_color = load_from_excel(XLSX)
 
 # Build factor → category color map
 factor_to_category = dict(zip(factor_meta["factor_name"], factor_meta["category_name"]))
