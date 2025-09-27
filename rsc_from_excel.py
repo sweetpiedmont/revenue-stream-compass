@@ -695,7 +695,7 @@ if st.session_state.get("show_results", False):
         submitted = st.form_submit_button("Send me my mini report")
 
         if submitted and email and first_name:
-            zapier_webhook_url = "https://hooks.zapier.com/hooks/catch/19897729/ud9fr8n/"
+            zapier_webhook_url = "https://hooks.zapier.com/hooks/catch/19897729/u1ckikf/"
 
             # Generate a unique user_id for this run
             user_id = str(uuid.uuid4())
