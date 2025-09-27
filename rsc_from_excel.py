@@ -722,8 +722,10 @@ if st.session_state.get("show_results", False):
                 "first_name": first_name,
                 "last_name": last_name,
                 "farm_name": farm_name,
-                "top5": json.dumps(top5_with_narratives),
-                "all_streams": json.dumps(all_streams)
+                "top5": top5_with_narratives,  # list, Zapier splits
+                "all_streams": all_streams,    # list, Zapier splits
+                "top5_json": json.dumps(top5_with_narratives),   # preserved JSON string
+                "all_streams_json": json.dumps(all_streams)      # preserved JSON string
             }
 
             try:
