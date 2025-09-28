@@ -168,6 +168,47 @@ def generate_channel_blurb(channel, strengths, weakness, reasons):
 # ------------------------
 # LONG NARRATIVES
 # ------------------------
+def get_channel_short_narrative(channel_name, narratives, user_scores):
+    """
+    Generate a short 2–3 sentence narrative for Top 5.
+    Pulls the top 2 strong factors and 1 weak factor for this channel
+    and uses generate_channel_blurb to assemble the text.
+    """
+
+    # Filter to weighted factors for this channel
+    df = narratives[(narratives["channel_name"] == channel_name) & (narratives["weight"] >= 4)].copy()
+    if df.empty:
+        return f"No narrative data available for {channel_name}."
+
+    # Add user scores
+    df["factor_id"] = df["factor_name"].map(slugify)
+    df["user_score"] = df["factor_id"].map(lambda fid: user_scores.get(fid, 0))
+
+    # Select top 2 strengths (highest scores)
+    strengths = df.sort_values("user_score", ascending=False).head(2)
+
+    # Select weakest factor
+    weakness = df.sort_values("user_score", ascending=True).head(1)
+
+    # --- Fallbacks ---
+    if strengths.empty:
+        strengths = df.head(2)  # at least pick something
+    if weakness.empty:
+        weakness = df.tail(1)
+
+    # Build input lists
+    strengths_list = strengths["factor_name"].tolist()
+    weakness_name = weakness["factor_name"].iloc[0]
+
+    reasons = [
+        strengths["strength_blurb"].iloc[0] if "strength_blurb" in strengths else "",
+        strengths["strength_blurb"].iloc[1] if len(strengths) > 1 and "strength_blurb" in strengths else "",
+        weakness["weakness_blurb"].iloc[0] if "weakness_blurb" in weakness else "",
+    ]
+
+    # Call the short blurb generator
+    return generate_channel_blurb(channel_name, strengths_list, weakness_name, reasons)
+
 def get_channel_long_narrative(channel_name, narratives, user_scores, compass_link=None):
     """
     Generate the long narrative (~2 short paragraphs) for paid Compass customers.
