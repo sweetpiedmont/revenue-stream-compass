@@ -12,7 +12,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 from rsc_from_excel import load_from_excel, build_results
 
 # --- Jinja2 setup ---
-env = Environment(loader=FileSystemLoader("templates"))
+env = Environment(loader=FileSystemLoader("pdf_generator/templates"))
 
 def render_mini_report_html(user_name, top5, all_streams):
     """Render Mini-Report HTML from Jinja template with given data."""
