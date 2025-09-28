@@ -61,10 +61,8 @@ if __name__ == "__main__":
     # TEMP: pretend every slider was set to 5
     user_scores = {row["factor_id"]: 5 for _, row in factors.iterrows()}
 
-    # Use the new results builder
-    results = build_results(user_scores, factors, categories, channels, narratives)
-    top5 = results["top5"]
-    all_streams = results["all_streams"]
+    # Use the results builder (only needs user_scores, narratives, channels)
+    top5, all_streams = build_results(user_scores, narratives, channels)
 
     generate_mini_report(user_id, user_name, top5, all_streams)
 
