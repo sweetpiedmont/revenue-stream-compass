@@ -3,6 +3,7 @@
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML
+from save_to_drive import save_navigation_planner   # 👈 NEW IMPORT
 
 # Set up Jinja environment (points to templates folder)
 env = Environment(loader=FileSystemLoader("templates"))
@@ -16,17 +17,27 @@ def render_navigation_html(user_name, top5, channels):
         channels=channels,
     )
 
-def generate_pdf(user_name, top5, channels, outpath="planner.pdf"):
+def generate_pdf(user_id, user_name, top5, channels, outpath="planner.pdf"):
+    """
+    Generate the Navigation Planner PDF and save both locally and to Drive.
+    """
     html_content = render_navigation_html(user_name, top5, channels)
+
+    # Write locally
     HTML(string=html_content).write_pdf(outpath)
     print(f"✅ PDF written to {outpath}")
 
+    # ALSO write to Drive (using the helper in save_to_drive.py)
+    drive_folder = "/Users/yourname/Google Drive/Compass_PDFs"  # 👈 update this path
+    save_navigation_planner(user_id, html_content, drive_folder)
+
 if __name__ == "__main__":
     # Fake test data
+    user_id = "test123"
     user_name = "Test User"
     top5 = ["Workshops", "Full Service Weddings", "Farmers Markets", "Subscriptions", "DIY Buckets"]
- 
- # Fake channel data (simulate 2 channels for now)
+
+    # Fake channel data (simulate 2 channels for now)
     channels = [
         {
             "name": "Workshops",
@@ -44,4 +55,4 @@ if __name__ == "__main__":
         },
     ]
 
-    generate_pdf(user_name, top5, channels)
+    generate_pdf(user_id, user_name, top5, channels)
