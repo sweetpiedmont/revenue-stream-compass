@@ -13,7 +13,6 @@ from dotenv import load_dotenv
 from jinja2 import Environment, FileSystemLoader
 import uuid
 import json
-from weasyprint import HTML
 
 # -------------------------
 # SETUP
@@ -291,6 +290,8 @@ def save_navigation_planner_pdf(pages_html, filename="navigation_planner.pdf"):
         Takes a list of rendered HTML pages and saves them as a single PDF.
         Each page will be separated with a page break.
         """
+        from weasyprint import HTML
+        
         # Join pages with explicit page breaks
         full_html = "<div style='page-break-after: always;'></div>".join(pages_html)
 
@@ -429,7 +430,7 @@ if __name__ == "__main__":
         st.markdown(
             """
             <div style='border: 2px solid #ddd; border-radius: 10px; padding: 15px; background-color: #f9f9f9;'>
-            <strong>Note: Not Every Factor Is Scored — On Purpose</strong><br><br>
+            <strong>Note: Not Every Trait Is Scored — On Purpose</strong><br><br>
             You won’t see questions here about things like years of farming experience, bookkeeping skills, 
             or how many other farms are nearby. Those matter — but they’ll affect you no matter which 
             sales channel you choose.  
