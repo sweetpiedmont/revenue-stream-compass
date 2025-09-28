@@ -5,6 +5,7 @@ from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML
 from save_to_drive import save_navigation_planner  # we’ll reuse this helper for Drive saves
 import sys
+from rsc_from_excel import load_from_excel, build_results
 
 # --- Jinja2 setup ---
 env = Environment(loader=FileSystemLoader("templates"))
@@ -46,36 +47,20 @@ if __name__ == "__main__":
     else:
         user_id = "test123"
 
-    # --- Fake test data (replace later with Airtable pull) ---
+    # --- Pull test data from Airtable ---
     user_name = "Test User"
 
-    top5 = [
-        {"name": "Workshops", "score": 0.95, "narrative": "Workshops connect you directly with your community."},
-        {"name": "Full Service Weddings", "score": 0.92, "narrative": "High revenue potential but requires careful planning."},
-        {"name": "Farmers Markets", "score": 0.87, "narrative": "A steady, visible way to sell and connect locally."},
-        {"name": "Subscriptions", "score": 0.83, "narrative": "Reliable recurring revenue if you have steady production."},
-        {"name": "DIY Buckets", "score": 0.81, "narrative": "Simple, accessible way to serve casual events or budget-conscious customers."},
-    ]
+    factors, categories, channels, narratives = load_from_excel(
+        Path("Extreme_Weighting_Scoring_Prototype_for_FormWise_REPAIRED.xlsx")
+    )
 
-    all_streams = [
-        {"name": "Workshops", "score": 0.95},
-        {"name": "Full Service Weddings", "score": 0.92},
-        {"name": "Farmers Markets", "score": 0.87},
-        {"name": "Subscriptions", "score": 0.83},
-        {"name": "DIY Buckets", "score": 0.81},
-        {"name": "Wholesale to Florists", "score": 0.79},
-        {"name": "Community & Corporate Events", "score": 0.76},
-        {"name": "Pick-Your-Own Events", "score": 0.73},
-        {"name": "Photography Venue", "score": 0.70},
-        {"name": "Hotel & Restaurant Contracts", "score": 0.68},
-        {"name": "Growers Collective", "score": 0.66},
-        {"name": "Stockist / Consignment", "score": 0.63},
-        {"name": "Wholesale Mixed Bouquets", "score": 0.61},
-        {"name": "Farm Stand / Shop", "score": 0.60},
-        {"name": "Subscriptions Lite", "score": 0.58},
-        {"name": "DIY Bulk Sales", "score": 0.55},
-        {"name": "Workshops (Advanced)", "score": 0.53},
-        {"name": "CSA Hybrid", "score": 0.50},
-    ]
+    # TEMP: pretend every slider was set to 5
+    user_scores = {row["factor_id"]: 5 for _, row in factors.iterrows()}
+
+    # Use the new results builder
+    results = build_results(user_scores, factors, categories, channels, narratives)
+    top5 = results["top5"]
+    all_streams = results["all_streams"]
 
     generate_mini_report(user_id, user_name, top5, all_streams)
+
