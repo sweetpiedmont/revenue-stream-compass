@@ -28,7 +28,7 @@ def generate_pdf(user_id, user_name, top5, channels, outpath="planner.pdf"):
     print(f"✅ PDF written to {outpath}")
 
     # ALSO write to Drive (using the helper in save_to_drive.py)
-    drive_folder = "'/Users/sharon/Library/CloudStorage/GoogleDrive-hello@sweetpiedmontacademy.com/My Drive/Navigation Planner Storage'"  # 👈 update this path
+    drive_folder = "/Users/sharon/Library/CloudStorage/GoogleDrive-hello@sweetpiedmontacademy.com/My Drive/Navigation Planner Storage"  # 👈 update this path
     save_navigation_planner(user_id, html_content, drive_folder)
 
 if __name__ == "__main__":
