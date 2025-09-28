@@ -3,7 +3,8 @@
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML
-from save_to_drive import save_navigation_planner   # 👈 NEW IMPORT
+from save_to_drive import save_navigation_planner
+import sys   # 👈 new import
 
 # Set up Jinja environment (points to templates folder)
 env = Environment(loader=FileSystemLoader("templates"))
@@ -27,17 +28,22 @@ def generate_pdf(user_id, user_name, top5, channels, outpath="planner.pdf"):
     HTML(string=html_content).write_pdf(outpath)
     print(f"✅ PDF written to {outpath}")
 
-    # ALSO write to Drive (using the helper in save_to_drive.py)
-    drive_folder = "/Users/sharon/Library/CloudStorage/GoogleDrive-hello@sweetpiedmontacademy.com/My Drive/Navigation Planner Storage"  # 👈 update this path
+    # ALSO write to Drive
+    drive_folder = "/Users/sharon/Library/CloudStorage/GoogleDrive-hello@sweetpiedmontacademy.com/My Drive/Navigation Planner Storage"
     save_navigation_planner(user_id, html_content, drive_folder)
 
+
 if __name__ == "__main__":
-    # Fake test data
-    user_id = "test123"
+    # Allow user_id to be passed from command line
+    if len(sys.argv) > 1:
+        user_id = sys.argv[1]
+    else:
+        user_id = "test123"  # fallback default
+
+    # Fake test data (until hooked into Airtable)
     user_name = "Test User"
     top5 = ["Workshops", "Full Service Weddings", "Farmers Markets", "Subscriptions", "DIY Buckets"]
 
-    # Fake channel data (simulate 2 channels for now)
     channels = [
         {
             "name": "Workshops",
