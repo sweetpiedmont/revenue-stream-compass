@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Mini Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 1in;
+            line-height: 1.5;
+        }
+        h1, h2 {
+            color: #4a148c;
+        }
+        h3 {
+            color: #00695c;
+            margin-bottom: 0.3rem;
+        }
+        .section {
+            margin-bottom: 1.2rem;
+        }
+        .box {
+            border: 1px solid #ccc;
+            padding: 0.5rem;
+            border-radius: 6px;
+            margin: 0.4rem 0;
+            background-color: #f9f9f9;
+        }
+        .progress-bar {
+            height: 10px;
+            background-color: #ccc;
+            border-radius: 4px;
+            margin-top: 0.3rem;
+        }
+        .progress-fill {
+            height: 10px;
+            background-color: #4a148c;
+            border-radius: 4px;
+        }
+        .page-break {
+            page-break-before: always;
+        }
+    </style>
+</head>
+<body>
+    <!-- Cover -->
+    <h1>Revenue Stream Compass™ Mini Report</h1>
+    <p>Hello {{ user_name }}, here’s your personalized snapshot from the Field Factors Self-Assessment.</p>
+    <div class="page-break"></div>
+
+    <!-- Top 5 -->
+    <h2>Your Top 5 Matches</h2>
+    {% for stream in top5 %}
+        <div class="section">
+            <h3>{{ loop.index }}. {{ stream.name }} ({{ (stream.score * 100) | round(0) }}%)</h3>
+            <p>{{ stream.narrative }}</p>
+        </div>
+    {% endfor %}
+    <div class="page-break"></div>
+
+    <!-- Full Rankings -->
+    <h2>Your Full Rankings</h2>
+    <table style="width:100%; border-collapse: collapse;">
+        {% for s in all_streams %}
+        <tr>
+            <td style="padding: 4px;">{{ loop.index }}. {{ s.name }}</td>
+            <td style="padding: 4px; width: 60%;">
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ (s.score * 100) | round(0) }}%;"></div>
+                </div>
+            </td>
+            <td style="padding: 4px;">{{ (s.score * 100) | round(0) }}%</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <div class="page-break"></div>
+
+    <!-- CTA -->
+    <h2>Ready to Go Deeper?</h2>
+    <p>
+        This Mini-Report is just the beginning.  
+        The full Revenue Stream Compass™ reveals why your streams ranked the way they did,  
+        what obstacles you’ll face, and how to align your dream farm with your reality.  
+    </p>
+    <p><strong>Get the full Compass today →</strong></p>
+    <p><em>Cheering you on,</em><br>Sharon</p>
+</body>
+</html>

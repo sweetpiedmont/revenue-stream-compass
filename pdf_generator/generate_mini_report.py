@@ -28,6 +28,7 @@ def generate_mini_report(user_id, user_name, top5, all_streams, outpath="mini_re
 
     # Google Drive write
     drive_folder = "/Users/sharon/Library/CloudStorage/GoogleDrive-hello@sweetpiedmontacademy.com/My Drive/Mini Report Storage"
+
     folder = Path(drive_folder)
     folder.mkdir(parents=True, exist_ok=True)
 
