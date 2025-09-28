@@ -1,116 +1,40 @@
+# -------------------------
+# IMPORTS
+# -------------------------
 import streamlit as st
 import pandas as pd
 import numpy as np
 from pathlib import Path
 import re
-import requests #needed for posting to Zapier
+import requests  # needed for posting to Zapier
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
 from jinja2 import Environment, FileSystemLoader
 import uuid
 import json
+from weasyprint import HTML
 
-# Load API key from .env file
+# -------------------------
+# SETUP
+# -------------------------
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# def strength_narrative(score, factor, base_blurb):
-    #if score >= 7:
-        #return f"Your strong {factor} makes this stream a natural fit. {base_blurb}"
-    #elif score >= 4:
-        #return f"Your relative comfort with {factor} helps here. {base_blurb}"
-    #else:
-        #return f"Among the traits that matter for this stream, {factor} was one of your higher areas — though it may still need development. {base_blurb}"
+st.set_page_config(page_title="Revenue Stream Compass — Top 5", page_icon="🌸", layout="centered")
 
-#def weakness_narrative(score, factor, base_blurb):
-    #if score <= 3:
-        #return f"Your low score in {factor} could make this stream more challenging. {base_blurb}"
-    #elif score <= 6:
-        #return f"{factor} may not be a major gap, but it’s an area to watch. {base_blurb}"
-    #else:
-        #return f"Even though {factor} is relatively strong overall, it ranked lowest here — so it’s worth attention. {base_blurb}"
+BASE = Path(__file__).resolve().parent
+XLSX = BASE / "Extreme_Weighting_Scoring_Prototype_for_FormWise_REPAIRED.xlsx"
 
+# -------------------------
+# UTILITIES
+# -------------------------
 def safe_text(val):
     if val is None:
         return ""
     if isinstance(val, float) and pd.isna(val):
         return ""
     return str(val).strip()
-
-def get_channel_short_narrative (channel_name, narratives, user_scores):
-    """
-    Generate the short narrative (~3–4 sentences) for lead magnet delivery.
-    Handles normal + edge cases, then calls generate_channel_blurb().
-    """
-    df = narratives[(narratives["channel_name"] == channel_name) & (narratives["weight"] >= 4)].copy()
-    if df.empty:
-        return f"No narrative data available for {channel_name}."
-
-    # Map in user scores + weighted_score using factor_id
-    df["factor_id"] = df["factor_name"].map(slugify)
-    df["user_score"] = df["factor_id"].map(lambda fid: user_scores.get(fid, 0))
-    df["weighted_score"] = df["user_score"] * df["weight"]
-
-    # Edge case detection (per channel)
-    all_high = df["user_score"].min() >= 8
-    all_low = df["user_score"].max() <= 3
-    all_same = df["user_score"].nunique() == 1
-
-    # Select top 2 strengths
-    strengths = df.sort_values("weighted_score", ascending=False).head(2)
-    used_factors = strengths["factor_name"].tolist()
-
-    # Select 1 weakest factor (not already used)
-    weakness_candidates = df[~df["factor_name"].isin(used_factors)]
-    if weakness_candidates.empty:
-        return "Not enough factors to generate a weakness."
-    weakness = weakness_candidates.sort_values("weighted_score", ascending=True).head(1)
-
-    s1, s2, w1 = strengths.iloc[0], strengths.iloc[1], weakness.iloc[0]
-
-    # --- Edge case handling ---
-    if all_low:
-        # ... build gentle reasons ...
-        strengths_list = [s1["factor_name"], s2["factor_name"]]
-        reasons = [
-            f"Among your lower scores, {s1['factor_name']} still stood out as relatively stronger. {s1['strength_blurb']}",
-            f"Similarly, {s2['factor_name']} showed some promise. {s2['strength_blurb']}",
-            f"Your lowest area was {w1['factor_name']}, which could create challenges. {w1['weakness_blurb']}"
-        ]
-        return generate_channel_blurb(channel_name, strengths_list, w1["factor_name"], reasons)
-
-    elif all_high:
-        # ... build softened reasons ...
-        strengths_list = [s1["factor_name"], s2["factor_name"]]
-        reasons = [
-            s1["strength_blurb"],
-            s2["strength_blurb"],
-        f"Even though your scores for {channel_name} are strong overall, {w1['factor_name']} still ranked lowest. {w1['weakness_blurb']}"
-        ]
-        return generate_channel_blurb(channel_name, strengths_list, w1["factor_name"], reasons)
-
-    elif all_same:
-        return (
-        f"Because all of your Field Factor self-assessment scores were exactly the same, the explanation of your Top Revenue Streams is "
-        f"based exclusively on how the Revenue Stream Compass™ weights different Field Factors in each revenue stream. "
-        f"To get a more meaningful and personalized result, please consider adjusting your scores so they’re not all identical."
-    )
-
-    else:
-     # Normal case
-        strengths_list = [s1["factor_name"], s2["factor_name"]]
-        reasons = [
-            f"{s1['factor_name']}: {s1['strength_blurb']} This matters because {s1['weighting_reason']}.",
-            f"{s2['factor_name']}: {s2['strength_blurb']} This matters because {s2['weighting_reason']}.",
-            f"{w1['factor_name']}: {w1['weakness_blurb']} This could be a limitation because {w1['weighting_reason']}."
-        ]
-        return generate_channel_blurb(channel_name, strengths_list, w1["factor_name"], reasons)
-
-st.set_page_config(page_title="Revenue Stream Compass — Top 5", page_icon="🌸", layout="centered")
-
-BASE = Path(__file__).resolve().parent
-XLSX = BASE / "Extreme_Weighting_Scoring_Prototype_for_FormWise_REPAIRED.xlsx"
 
 def slugify(s: str) -> str:
     s = re.sub(r"[^\w\s-]", "", str(s)).strip().lower()
@@ -124,6 +48,10 @@ def adjust_weight(w: float) -> float:
         return 0.0
     mapping = {1: 0.0, 2: 2.0, 3: 4.0, 4: 8.0, 5: 10.0}
     return mapping.get(int(w), 0.0)
+
+# -------------------------
+# LOAD DATA
+# -------------------------
 
 @st.cache_data
 def load_from_excel(xlsx_path: Path):
@@ -209,12 +137,9 @@ def load_from_excel(xlsx_path: Path):
 
     return factors, categories, channels, narratives
 
-#def test_api():
-    #response = client.responses.create(
-       # model="gpt-4.1-mini",
-        #input="Say hello to Sharon in one short sentence."
-    #)
-    #return response.output_text
+# -------------------------
+# NARRATIVE GENERATION
+# -------------------------
 
 def generate_channel_blurb(channel, strengths, weakness, reasons):
     prompt = f"""
@@ -293,7 +218,6 @@ def get_channel_long_narrative(channel_name, narratives, user_scores, compass_li
 
     return long_blurb
 
-
 def generate_channel_long_blurb(channel, strengths, weaknesses, borrowed=False):
     """
     Utility for long narratives.
@@ -362,6 +286,38 @@ def render_navigation_page(channel_name, narrative, advantages, obstacles, rank,
 
     return html
 
+def save_navigation_planner_pdf(pages_html, filename="navigation_planner.pdf"):
+        """
+        Takes a list of rendered HTML pages and saves them as a single PDF.
+        Each page will be separated with a page break.
+        """
+        # Join pages with explicit page breaks
+        full_html = "<div style='page-break-after: always;'></div>".join(pages_html)
+
+        # Wrap with <html> so WeasyPrint renders correctly
+        full_html = f"""
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 40px; }}
+                h1 {{ font-size: 22px; margin-bottom: 10px; }}
+                h2 {{ font-size: 18px; margin-top: 20px; }}
+                .narrative {{ margin: 20px 0; line-height: 1.5; }}
+                .factors {{ display: flex; justify-content: space-between; margin-top: 20px; }}
+                .advantages, .obstacles {{ width: 45%; }}
+                .tag {{ display: inline-block; margin: 5px; padding: 6px 10px; border-radius: 6px; font-size: 14px; }}
+            </style>
+        </head>
+        <body>
+            {full_html}
+        </body>
+        </html>
+        """
+
+        # Render to PDF
+        HTML(string=full_html).write_pdf(filename)
+        return filename
 # ---------------
 # RESULTS BUILDER (for Mini Report + Navigation Planner PDFs) 
 # ---------------
@@ -419,458 +375,416 @@ def build_results(user_scores, narratives, channels):
     return top5, all_streams
 
 # -------------------------
-# APP STARTS
+# APP STARTS (only if run directly)
 # -------------------------
 
-factors, categories, channels, narratives = load_from_excel(XLSX)
+if __name__ == "__main__":
 
-# Build factor → category color map
-factor_to_category = dict(zip(factors["factor_name"], factors["category_name"]))
-category_to_color = dict(zip(categories["category_name"], categories["category_color"]))
+    factors, categories, channels, narratives = load_from_excel(XLSX)
 
-# Factor to color map (using category link)
-factor_to_color = {
-    f: category_to_color.get(cat, "#cccccc")
-    for f, cat in factor_to_category.items()
-}
+    # Build factor → category color map
+    factor_to_category = dict(zip(factors["factor_name"], factors["category_name"]))
+    category_to_color = dict(zip(categories["category_name"], categories["category_color"]))
 
-# Safe default so any stray references won't crash before user clicks the button
-rackstack = pd.DataFrame(columns=["channel_name", "score"])
+    # Factor to color map (using category link)
+    factor_to_color = {
+        f: category_to_color.get(cat, "#cccccc")
+        for f, cat in factor_to_category.items()
+    }
 
-# -------------------------
-# PHASE 0: INTRO + TRUST SETUP
-# -------------------------
+    # Safe default so any stray references won't crash before user clicks the button
+    rackstack = pd.DataFrame(columns=["channel_name", "score"])
 
-if "started" not in st.session_state:
-    st.session_state.started = False
-
-if not st.session_state.started:
-    # Pre-amble
-    st.title("🌸 Welcome to Your Field Factors Self Assessment")
-    st.markdown("""
-    This short, structured quiz is designed to show which flower-farming revenue streams align with your strengths and resources.  
-    """)
-
-    # Honesty reminder
-    st.subheader("A quick but important note before you begin")
-    st.markdown("""
-    👉 There are no “good” or “bad” answers. The more honest you are, the more useful your results will be. 
-    
-    It may be tempting to nudge your scores toward the revenue stream you think you want to pursue — or 
-    soften your answers because you’re worried a low score means you can’t pursue it.  
-    
-    That’s not how this works.  
-
-    This process isn’t here to gatekeep your dream. It’s here to help you pursue it smarter. Even if you've got low scores in critical areas, we're here to help you find workarounds.  
-    
-    So be honest: don’t downplay your strengths, and don’t be afraid to reveal your challenges.
-    """)
-
-    # Boxed callout
-    st.markdown("---")
-    st.markdown(
-        """
-        <div style='border: 2px solid #ddd; border-radius: 10px; padding: 15px; background-color: #f9f9f9;'>
-        <strong>Note: Not Every Factor Is Scored — On Purpose</strong><br><br>
-        You won’t see questions here about things like years of farming experience, bookkeeping skills, 
-        or how many other farms are nearby. Those matter — but they’ll affect you no matter which 
-        sales channel you choose.  
-
-        This self-assessment focuses only on the factors that actually help you compare and choose 
-        between different sales channels. If it’s not here, it’s not because it’s unimportant — 
-        it’s because it won’t change which options are the best fit for you.
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    st.markdown("---")
-
-    # Privacy + Consent
-    consent = st.checkbox("🔒 I understand that my responses will be stored securely, "
-                          "used only in aggregate for research, and never shared individually.")
-    
-    # Start button (only active if consent given)
-    if st.button("🌟 I'm Ready — Let's Start My Self-Assessment!", disabled=not consent):
-        if consent:
-            st.session_state.started = True
-            st.rerun()
-
-else:
     # -------------------------
-    # USER INPUTS
+    # PHASE 0: INTRO + TRUST SETUP
     # -------------------------
-    user_scores = {}
 
-    st.title("🌸 Welcome to Your Field Factors Self Assessment")
+    if "started" not in st.session_state:
+        st.session_state.started = False
 
-    st.markdown("👉 For each question, use the slider to rate yourself on the scale provided. Move the bar to the point that best reflects your current situation.")
+    if not st.session_state.started:
+        # Pre-amble
+        st.title("🌸 Welcome to Your Field Factors Self Assessment")
+        st.markdown("""
+        This short, structured quiz is designed to show which flower-farming revenue streams align with your strengths and resources.  
+        """)
 
-    for _, cat_row in categories.iterrows():
-        cat_name = cat_row["category_name"]
-        cat_desc = cat_row.get("category_description", "")
+        # Honesty reminder
+        st.subheader("A quick but important note before you begin")
+        st.markdown("""
+        👉 There are no “good” or “bad” answers. The more honest you are, the more useful your results will be. 
+        
+        It may be tempting to nudge your scores toward the revenue stream you think you want to pursue — or 
+        soften your answers because you’re worried a low score means you can’t pursue it.  
+        
+        That’s not how this works.  
 
-        st.markdown(f"## {cat_name}")
-        if pd.notna(cat_desc) and str(cat_desc).strip():
-            st.markdown(f"*{cat_desc.strip()}*")
-            st.markdown("")
+        This process isn’t here to gatekeep your dream. It’s here to help you pursue it smarter. Even if you've got low scores in critical areas, we're here to help you find workarounds.  
+        
+        So be honest: don’t downplay your strengths, and don’t be afraid to reveal your challenges.
+        """)
 
-        these_factors = factors[factors["category_name"] == cat_name]
+        # Boxed callout
+        st.markdown("---")
+        st.markdown(
+            """
+            <div style='border: 2px solid #ddd; border-radius: 10px; padding: 15px; background-color: #f9f9f9;'>
+            <strong>Note: Not Every Factor Is Scored — On Purpose</strong><br><br>
+            You won’t see questions here about things like years of farming experience, bookkeeping skills, 
+            or how many other farms are nearby. Those matter — but they’ll affect you no matter which 
+            sales channel you choose.  
 
-        for i, row in these_factors.iterrows():
-            fid   = row["factor_id"]
-            fname = row["factor_name"]
-
-            if i > 0:
-                st.markdown("&nbsp;", unsafe_allow_html=True)
-
-            fdesc = row.get("factor_description", "")
-            st.markdown(f"**{fname}**: {safe_text(fdesc)}")
-
-            left_label  = safe_text(row.get("left_label"))  or "Weakness"
-            right_label = safe_text(row.get("right_label")) or "Strength"
-
-            vmin  = int(row.get("min", 0))
-            vmax  = int(row.get("max", 10))
-            vstep = int(row.get("step", 1))
-            vdef  = int((vmax + vmin) // 2)
-
-            user_scores[fid] = st.slider(
-                fname,
-                min_value=vmin,
-                max_value=vmax,
-                value=vdef,
-                step=vstep,
-                key=f"slider_{fid}",
-                label_visibility="collapsed"
-            )
-
-            st.markdown(
-                f"<div style='display:flex; justify-content:space-between; margin-top:-8px;'>"
-                f"<span style='font-size:0.8em; color:gray;'>{left_label}</span>"
-                f"<span style='font-size:0.8em; color:gray;'>{right_label}</span>"
-                "</div>",
-                unsafe_allow_html=True
-            )
-
-    st.markdown("---")
-    if st.button("See My Top 5"):
-        st.session_state.show_results = True
-
-# -------------------------
-# CALCULATE SCORES
-# -------------------------
-
-# Only run calculations if flag is set
-if st.session_state.get("show_results", False):
-    factor_cols = [c for c in channels.columns if c.startswith("f_")]
-
-    uw = {f"f_{fid}": float(user_scores[fid]) for fid in user_scores.keys()}
-    uw_df = pd.DataFrame([uw])
-
-    uw_aligned = uw_df[channels[factor_cols].columns]
-
-    # --- ORIGINAL SCORING ---
-    # scores = np.dot(channels[factor_cols].values, uw_aligned.values.T).reshape(-1)
-    #max_vector = np.array([10.0] * len(factor_cols))
-    #max_scores = np.dot(channels[factor_cols].values, max_vector.T).reshape(-1)
-
-    #ch = channels.copy()
-    #ch["score"] = np.divide(scores, max_scores, out=np.zeros_like(scores), where=max_scores != 0)
-
-    # --- NEW SCORING: Weighted Average with Coverage + Channel Normalization
-    ch = channels.copy()
-
-    adjusted_scores = []
-    for idx, row in channels.iterrows():
-        row_factors = row[factor_cols]
-        factor_mask = row_factors > 0
-
-        if factor_mask.sum() == 0:
-            adjusted_scores.append(0)
-            continue
-
-        scores = uw_aligned.loc[:, row_factors.index[factor_mask]].values.flatten()
-        weights = row_factors[factor_mask].values
-
-        if len(scores) == 0 or weights.sum() == 0:
-            adjusted_scores.append(0)
-            continue
-
-        # Weighted average of user scores (0–10 scale)
-        weighted_avg = np.dot(scores, weights) / weights.sum()
-
-        # Normalize to 0–1
-        score = weighted_avg / 10.0
-
-        adjusted_scores.append(score)
-
-    # Existing: fit-only score
-    ch["fit_score"] = adjusted_scores  # already normalized 0–1
-
-    # Option 2: Weighted blend (70% fit + 30% coverage)
-    max_factors = max(channels[factor_cols].astype(bool).sum(axis=1))
-    
-    # --- Coverage calculation (count only "important" factors: Excel 4–5 → adjusted 8–10) ---
-    max_factors_high = (channels[factor_cols] >= 8).sum(axis=1).max()
-
-    coverages = []
-    for idx, row in channels.iterrows():
-        k = (row[factor_cols] >= 8).sum() # count only factors with adjusted weight >= 8
-        coverage = k / max_factors_high if max_factors_high > 0 else 0
-        coverages.append(coverage)
-
-    ch["coverage"] = coverages
-
-    # --- Blended scores ---
-    ch["blend_score_70"] = 0.7 * ch["fit_score"] + 0.3 * ch["coverage"]
-    ch["score"] = ch["blend_score_70"]  # Lock in 70/30 as the scoring method
-    #ch["blend_score_80"] = 0.8 * ch["fit_score"] + 0.2 * ch["coverage"] #remove this option
-
-    ### REMOVED RADIO BUTTON AND OPTIONS FOR HOW SCORING IS DONE ###
-    # Let user choose which scoring method drives the rankings
-    #score_method = st.radio(
-        #"Choose scoring method for Top 5:",
-        #["Fit Only", "Blend (70/30)", "Blend (80/20)", "Coverage Only"],
-        #index=1   # default = Blend (70/30)
-    #)
-
-    #if score_method == "Fit Only":
-        #ch["score"] = ch["fit_score"]
-    #elif score_method == "Coverage Only":
-        #ch["score"] = ch["coverage"]
-    #elif score_method == "Blend (70/30)":
-        #ch["score"] = ch["blend_score_70"]
-    #elif score_method == "Blend (80/20)":
-        #ch["score"] = ch["blend_score_80"]
-    # else:
-        #ch["score"] = ch["fit_score"]  # fallback
-
-    # Keep score_map synced
-    score_map = dict(zip(ch["channel_name"], ch["score"]))
-    
-    # --- Contribution Analysis (row-normalized) ---
-    raw_contribs = channels[factor_cols].values * uw_aligned.values
-    row_totals = raw_contribs.sum(axis=1, keepdims=True)
-    contribs = np.divide(
-        raw_contribs,
-        row_totals,
-        out=np.zeros_like(raw_contribs),
-        where=row_totals != 0
-    )
-    contribs = pd.DataFrame(
-        contribs,
-        columns=factor_cols,
-        index=channels["channel_name"]
-    )
-    score_map = dict(zip(channels["channel_name"], ch["score"]))
-    contribs["normalized_total"] = contribs.index.map(score_map)
-
-    rackstack = (
-        ch.loc[:, ["channel_name", "fit_score", "coverage", "blend_score_70", "score"]]
-            .sort_values("score", ascending=False)
-            .reset_index(drop=True)
-    )
-
-    # --- Build Navigation Planner pages (all 18 streams, ordered by rank) ---
-    # --- Build long narratives for ALL 18 channels (paid Compass only) ---
-    long_narratives = {}
-    for channel in ch["channel_name"].unique():
-        slug = ch.loc[ch["channel_name"] == channel, "compass_link"].values[0]
-        long_narratives[channel] = get_channel_long_narrative(
-            channel,
-            narratives,
-            user_scores,
+            This self-assessment focuses only on the factors that actually help you compare and choose 
+            between different sales channels. If it’s not here, it’s not because it’s unimportant — 
+            it’s because it won’t change which options are the best fit for you.
+            </div>
+            """,
+            unsafe_allow_html=True
         )
-
-    planner_pages = []
-    for i, row in rackstack.iterrows():
-        ch_name = row["channel_name"]
-        rank = i + 1
-        narrative = long_narratives.get(ch_name, "")
-
-        # Get high/low user factors for this channel
-        df = narratives[(narratives["channel_name"] == ch_name) & (narratives["weight"] >= 4)].copy()
-        df["factor_id"] = df["factor_name"].map(slugify)
-        df["user_score"] = df["factor_id"].map(lambda fid: user_scores.get(fid, 0))
-
-        advantages = [
-            (fname, factor_to_color.get(fname, "#d9fdd3"))  # default greenish if missing
-            for fname in df[df["user_score"] >= 7]["factor_name"].tolist()
-        ]
-
-        obstacles = [
-            (fname, factor_to_color.get(fname, "#fdd3d3"))  # default reddish if missing
-            for fname in df[df["user_score"] <= 3]["factor_name"].tolist()
-        ]
-
-        compass_link = ch.loc[ch["channel_name"] == ch_name, "compass_link"].values[0]
-
-        # Render HTML for this page
-        page_html = render_navigation_page(
-            channel_name=ch_name,
-            narrative=narrative,
-            advantages=advantages,
-            obstacles=obstacles,
-            rank=rank,
-            compass_link=compass_link,
-        )
-        planner_pages.append(page_html)
-
-    # --- Show Top 5 ---
-    # Global check: did the user leave all sliders the same?
-    if len(set(user_scores.values())) == 1:
-        st.warning(
-            "⚠️ It looks like you gave every Field Factor the same score. "
-            "Your results will be based only on how the Compass weights different Field Factors, not your unique situation. "
-            "For a more meaningful result, try adjusting your scores so they’re not all identical."
-        )
-
-    top5 = rackstack.head(5)
-    st.subheader("Your Top 5 Matches")
-
-    for i, r in enumerate(top5.itertuples(), start=1):
-        st.markdown(f"#### {i}. {safe_text(r.channel_name)}")
-    
-    # --- Build portable Top 5 list for CTA ---
-    top_5 = top5[["channel_name", "score"]].values.tolist()
-
-    st.markdown("---")
-    st.subheader("📩 Want to know *WHY* these are your Top 5 *AND* see how you stack up against all 18 potential revenue streams?")
-    st.markdown(
-        "Get a personalized explanation of your Top 5 revenue stream results delivered straight to your inbox — "
-        "including some of the key strengths and challenges behind your Top 5 matches. We'll also "
-        "show you how you fit against all 18 revenue streams from the Revenue Stream Compass."
-    )
-
-    with st.form("email_capture"):
-        first_name = st.text_input("First Name (required)")
-        last_name = st.text_input("Last Name (optional)")
-        farm_name = st.text_input("Farm Name (optional)")
-        email = st.text_input("Email Address (required)")
-
-        submitted = st.form_submit_button("Send me my mini report")
-
-        if submitted and email and first_name:
-            zapier_webhook_url = "https://hooks.zapier.com/hooks/catch/19897729/u1ckikf/"
-
-            # Generate a unique user_id for this run
-            user_id = str(uuid.uuid4())
-
-            # Build Top 5 with short narratives
-            top5_with_narratives = []
-            for c, s in top_5:
-                short_blurb = get_channel_short_narrative(c, narratives, user_scores)
-                top5_with_narratives.append({
-                    "name": c,
-                    "short_narrative": short_blurb
-                })
-
-            # Build full ranked list (names only, with rank)
-            all_streams = [
-                {"name": row["channel_name"], "rank": i + 1}
-                for i, row in rackstack.iterrows()
-            ]
-
-            # Final JSON payload
-            payload = {
-                "user_id": user_id,
-                "email": email,
-                "first_name": first_name,
-                "last_name": last_name,
-                "farm_name": farm_name,
-                "top5": top5_with_narratives,  # list, Zapier splits
-                "all_streams": all_streams,    # list, Zapier splits
-                "top5_json": json.dumps(top5_with_narratives),   # preserved JSON string
-                "all_streams_json": json.dumps(all_streams)      # preserved JSON string
-            }
-
-            try:
-                st.write("📡 Sending payload:", payload)   # Debug
-                r = requests.post(zapier_webhook_url, json=payload)
-                st.write("🔎 Response status:", r.status_code)  # Debug
-                if r.status_code == 200:
-                    st.success("✅ Thanks! Your personalized Top 5 explanation is on its way to your inbox.")
-                else:
-                    st.error(f"❌ Oops — something went wrong. Status {r.status_code}")
-            except Exception as e:
-                st.error(f"⚠️ Connection failed: {e}")
-
-    st.info("✅ This block is DEV-only. This info will be put into a personalized pdf that gets sent via email.")
-
-from weasyprint import HTML
-
-def save_navigation_planner_pdf(pages_html, filename="navigation_planner.pdf"):
-    """
-    Takes a list of rendered HTML pages and saves them as a single PDF.
-    Each page will be separated with a page break.
-    """
-    # Join pages with explicit page breaks
-    full_html = "<div style='page-break-after: always;'></div>".join(pages_html)
-
-    # Wrap with <html> so WeasyPrint renders correctly
-    full_html = f"""
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <style>
-            body {{ font-family: Arial, sans-serif; margin: 40px; }}
-            h1 {{ font-size: 22px; margin-bottom: 10px; }}
-            h2 {{ font-size: 18px; margin-top: 20px; }}
-            .narrative {{ margin: 20px 0; line-height: 1.5; }}
-            .factors {{ display: flex; justify-content: space-between; margin-top: 20px; }}
-            .advantages, .obstacles {{ width: 45%; }}
-            .tag {{ display: inline-block; margin: 5px; padding: 6px 10px; border-radius: 6px; font-size: 14px; }}
-        </style>
-    </head>
-    <body>
-        {full_html}
-    </body>
-    </html>
-    """
-
-    # Render to PDF
-    HTML(string=full_html).write_pdf(filename)
-    return filename
-
-# -------------------------
-# DEV/TEST OUTPUT (not shown in final lead magnet)
-# -------------------------
-
-st.markdown("---")
-st.header("🌟 Your Top 5 Revenue Streams")
-
-if 'top5' in locals() and not top5.empty:
-    for _, r in top5.iterrows():
-        channel = r["channel_name"]
-        short_narrative = get_channel_short_narrative(channel, narratives, user_scores)
-        st.markdown(f"### {safe_text(channel)}")
-        st.markdown(f"**Score:** {r['score']:.0%}")
-        st.write(short_narrative)
-
-    # --- Full Rack & Stack (all channels, sorted) ---
-    st.markdown("---")
-    st.subheader("📊 Full Rack & Stack (All Channels)")
-
-    rackstack_display = rackstack.copy()
-    rackstack_display["Score"] = (rackstack_display["score"] * 100).round(1).astype(str) + "%"
-    st.dataframe(rackstack_display[["channel_name", "Score"]])
-else:
-    st.info("👉 Click **See my Top 5** above to generate your personalized results.")
-
-# 🚧 DEV-ONLY: Preview a couple long narratives
-
-with st.expander("🚧 DEV ONLY: Preview Navigation Planner"):
-    for page in planner_pages[:3]:  # just show first 3 pages for testing
-        st.components.v1.html(page, height=500, scrolling=True)
         st.markdown("---")
 
-if st.button("🚧 DEV ONLY: Generate PDF Now"):
-    pdf_file = save_navigation_planner_pdf(planner_pages)
-    st.success(f"PDF generated: {pdf_file}")
-    with open(pdf_file, "rb") as f:
-        st.download_button(
-            label="⬇️ Download Navigation Planner PDF",
-            data=f,
-            file_name="navigation_planner.pdf",
-            mime="application/pdf"
+        # Privacy + Consent
+        consent = st.checkbox("🔒 I understand that my responses will be stored securely, "
+                            "used only in aggregate for research, and never shared individually.")
+        
+        # Start button (only active if consent given)
+        if st.button("🌟 I'm Ready — Let's Start My Self-Assessment!", disabled=not consent):
+            if consent:
+                st.session_state.started = True
+                st.rerun()
+
+    else:
+        # -------------------------
+        # USER INPUTS
+        # -------------------------
+        user_scores = {}
+
+        st.title("🌸 Welcome to Your Field Factors Self Assessment")
+
+        st.markdown("👉 For each question, use the slider to rate yourself on the scale provided. Move the bar to the point that best reflects your current situation.")
+
+        for _, cat_row in categories.iterrows():
+            cat_name = cat_row["category_name"]
+            cat_desc = cat_row.get("category_description", "")
+
+            st.markdown(f"## {cat_name}")
+            if pd.notna(cat_desc) and str(cat_desc).strip():
+                st.markdown(f"*{cat_desc.strip()}*")
+                st.markdown("")
+
+            these_factors = factors[factors["category_name"] == cat_name]
+
+            for i, row in these_factors.iterrows():
+                fid   = row["factor_id"]
+                fname = row["factor_name"]
+
+                if i > 0:
+                    st.markdown("&nbsp;", unsafe_allow_html=True)
+
+                fdesc = row.get("factor_description", "")
+                st.markdown(f"**{fname}**: {safe_text(fdesc)}")
+
+                left_label  = safe_text(row.get("left_label"))  or "Weakness"
+                right_label = safe_text(row.get("right_label")) or "Strength"
+
+                vmin  = int(row.get("min", 0))
+                vmax  = int(row.get("max", 10))
+                vstep = int(row.get("step", 1))
+                vdef  = int((vmax + vmin) // 2)
+
+                user_scores[fid] = st.slider(
+                    fname,
+                    min_value=vmin,
+                    max_value=vmax,
+                    value=vdef,
+                    step=vstep,
+                    key=f"slider_{fid}",
+                    label_visibility="collapsed"
+                )
+
+                st.markdown(
+                    f"<div style='display:flex; justify-content:space-between; margin-top:-8px;'>"
+                    f"<span style='font-size:0.8em; color:gray;'>{left_label}</span>"
+                    f"<span style='font-size:0.8em; color:gray;'>{right_label}</span>"
+                    "</div>",
+                    unsafe_allow_html=True
+                )
+
+        st.markdown("---")
+        if st.button("See My Top 5"):
+            st.session_state.show_results = True
+
+    # -------------------------
+    # CALCULATE SCORES
+    # -------------------------
+
+    # Only run calculations if flag is set
+    if st.session_state.get("show_results", False):
+        factor_cols = [c for c in channels.columns if c.startswith("f_")]
+
+        uw = {f"f_{fid}": float(user_scores[fid]) for fid in user_scores.keys()}
+        uw_df = pd.DataFrame([uw])
+
+        uw_aligned = uw_df[channels[factor_cols].columns]
+
+        # --- ORIGINAL SCORING ---
+        # scores = np.dot(channels[factor_cols].values, uw_aligned.values.T).reshape(-1)
+        #max_vector = np.array([10.0] * len(factor_cols))
+        #max_scores = np.dot(channels[factor_cols].values, max_vector.T).reshape(-1)
+
+        #ch = channels.copy()
+        #ch["score"] = np.divide(scores, max_scores, out=np.zeros_like(scores), where=max_scores != 0)
+
+        # --- NEW SCORING: Weighted Average with Coverage + Channel Normalization
+        ch = channels.copy()
+
+        adjusted_scores = []
+        for idx, row in channels.iterrows():
+            row_factors = row[factor_cols]
+            factor_mask = row_factors > 0
+
+            if factor_mask.sum() == 0:
+                adjusted_scores.append(0)
+                continue
+
+            scores = uw_aligned.loc[:, row_factors.index[factor_mask]].values.flatten()
+            weights = row_factors[factor_mask].values
+
+            if len(scores) == 0 or weights.sum() == 0:
+                adjusted_scores.append(0)
+                continue
+
+            # Weighted average of user scores (0–10 scale)
+            weighted_avg = np.dot(scores, weights) / weights.sum()
+
+            # Normalize to 0–1
+            score = weighted_avg / 10.0
+
+            adjusted_scores.append(score)
+
+        # Existing: fit-only score
+        ch["fit_score"] = adjusted_scores  # already normalized 0–1
+
+        # Option 2: Weighted blend (70% fit + 30% coverage)
+        max_factors = max(channels[factor_cols].astype(bool).sum(axis=1))
+        
+        # --- Coverage calculation (count only "important" factors: Excel 4–5 → adjusted 8–10) ---
+        max_factors_high = (channels[factor_cols] >= 8).sum(axis=1).max()
+
+        coverages = []
+        for idx, row in channels.iterrows():
+            k = (row[factor_cols] >= 8).sum() # count only factors with adjusted weight >= 8
+            coverage = k / max_factors_high if max_factors_high > 0 else 0
+            coverages.append(coverage)
+
+        ch["coverage"] = coverages
+
+        # --- Blended scores ---
+        ch["blend_score_70"] = 0.7 * ch["fit_score"] + 0.3 * ch["coverage"]
+        ch["score"] = ch["blend_score_70"]  # Lock in 70/30 as the scoring method
+        #ch["blend_score_80"] = 0.8 * ch["fit_score"] + 0.2 * ch["coverage"] #remove this option
+
+        ### REMOVED RADIO BUTTON AND OPTIONS FOR HOW SCORING IS DONE ###
+        # Let user choose which scoring method drives the rankings
+        #score_method = st.radio(
+            #"Choose scoring method for Top 5:",
+            #["Fit Only", "Blend (70/30)", "Blend (80/20)", "Coverage Only"],
+            #index=1   # default = Blend (70/30)
+        #)
+
+        #if score_method == "Fit Only":
+            #ch["score"] = ch["fit_score"]
+        #elif score_method == "Coverage Only":
+            #ch["score"] = ch["coverage"]
+        #elif score_method == "Blend (70/30)":
+            #ch["score"] = ch["blend_score_70"]
+        #elif score_method == "Blend (80/20)":
+            #ch["score"] = ch["blend_score_80"]
+        # else:
+            #ch["score"] = ch["fit_score"]  # fallback
+
+        # Keep score_map synced
+        score_map = dict(zip(ch["channel_name"], ch["score"]))
+        
+        # --- Contribution Analysis (row-normalized) ---
+        raw_contribs = channels[factor_cols].values * uw_aligned.values
+        row_totals = raw_contribs.sum(axis=1, keepdims=True)
+        contribs = np.divide(
+            raw_contribs,
+            row_totals,
+            out=np.zeros_like(raw_contribs),
+            where=row_totals != 0
         )
+        contribs = pd.DataFrame(
+            contribs,
+            columns=factor_cols,
+            index=channels["channel_name"]
+        )
+        score_map = dict(zip(channels["channel_name"], ch["score"]))
+        contribs["normalized_total"] = contribs.index.map(score_map)
+
+        rackstack = (
+            ch.loc[:, ["channel_name", "fit_score", "coverage", "blend_score_70", "score"]]
+                .sort_values("score", ascending=False)
+                .reset_index(drop=True)
+        )
+
+        # --- Build Navigation Planner pages (all 18 streams, ordered by rank) ---
+        # --- Build long narratives for ALL 18 channels (paid Compass only) ---
+        long_narratives = {}
+        for channel in ch["channel_name"].unique():
+            slug = ch.loc[ch["channel_name"] == channel, "compass_link"].values[0]
+            long_narratives[channel] = get_channel_long_narrative(
+                channel,
+                narratives,
+                user_scores,
+            )
+
+        planner_pages = []
+        for i, row in rackstack.iterrows():
+            ch_name = row["channel_name"]
+            rank = i + 1
+            narrative = long_narratives.get(ch_name, "")
+
+            # Get high/low user factors for this channel
+            df = narratives[(narratives["channel_name"] == ch_name) & (narratives["weight"] >= 4)].copy()
+            df["factor_id"] = df["factor_name"].map(slugify)
+            df["user_score"] = df["factor_id"].map(lambda fid: user_scores.get(fid, 0))
+
+            advantages = [
+                (fname, factor_to_color.get(fname, "#d9fdd3"))  # default greenish if missing
+                for fname in df[df["user_score"] >= 7]["factor_name"].tolist()
+            ]
+
+            obstacles = [
+                (fname, factor_to_color.get(fname, "#fdd3d3"))  # default reddish if missing
+                for fname in df[df["user_score"] <= 3]["factor_name"].tolist()
+            ]
+
+            compass_link = ch.loc[ch["channel_name"] == ch_name, "compass_link"].values[0]
+
+            # Render HTML for this page
+            page_html = render_navigation_page(
+                channel_name=ch_name,
+                narrative=narrative,
+                advantages=advantages,
+                obstacles=obstacles,
+                rank=rank,
+                compass_link=compass_link,
+            )
+            planner_pages.append(page_html)
+
+        # --- Show Top 5 ---
+        # Global check: did the user leave all sliders the same?
+        if len(set(user_scores.values())) == 1:
+            st.warning(
+                "⚠️ It looks like you gave every Field Factor the same score. "
+                "Your results will be based only on how the Compass weights different Field Factors, not your unique situation. "
+                "For a more meaningful result, try adjusting your scores so they’re not all identical."
+            )
+
+        top5 = rackstack.head(5)
+        st.subheader("Your Top 5 Matches")
+
+        for i, r in enumerate(top5.itertuples(), start=1):
+            st.markdown(f"#### {i}. {safe_text(r.channel_name)}")
+        
+        # --- Build portable Top 5 list for CTA ---
+        top_5 = top5[["channel_name", "score"]].values.tolist()
+
+        st.markdown("---")
+        st.subheader("📩 Want to know *WHY* these are your Top 5 *AND* see how you stack up against all 18 potential revenue streams?")
+        st.markdown(
+            "Get a personalized explanation of your Top 5 revenue stream results delivered straight to your inbox — "
+            "including some of the key strengths and challenges behind your Top 5 matches. We'll also "
+            "show you how you fit against all 18 revenue streams from the Revenue Stream Compass."
+        )
+
+        with st.form("email_capture"):
+            first_name = st.text_input("First Name (required)")
+            last_name = st.text_input("Last Name (optional)")
+            farm_name = st.text_input("Farm Name (optional)")
+            email = st.text_input("Email Address (required)")
+
+            submitted = st.form_submit_button("Send me my mini report")
+
+            if submitted and email and first_name:
+                zapier_webhook_url = "https://hooks.zapier.com/hooks/catch/19897729/u1ckikf/"
+
+                # Generate a unique user_id for this run
+                user_id = str(uuid.uuid4())
+
+                # Build Top 5 with short narratives
+                top5_with_narratives = []
+                for c, s in top_5:
+                    short_blurb = get_channel_short_narrative(c, narratives, user_scores)
+                    top5_with_narratives.append({
+                        "name": c,
+                        "short_narrative": short_blurb
+                    })
+
+                # Build full ranked list (names only, with rank)
+                all_streams = [
+                    {"name": row["channel_name"], "rank": i + 1}
+                    for i, row in rackstack.iterrows()
+                ]
+
+                # Final JSON payload
+                payload = {
+                    "user_id": user_id,
+                    "email": email,
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "farm_name": farm_name,
+                    "top5": top5_with_narratives,  # list, Zapier splits
+                    "all_streams": all_streams,    # list, Zapier splits
+                    "top5_json": json.dumps(top5_with_narratives),   # preserved JSON string
+                    "all_streams_json": json.dumps(all_streams)      # preserved JSON string
+                }
+
+                try:
+                    st.write("📡 Sending payload:", payload)   # Debug
+                    r = requests.post(zapier_webhook_url, json=payload)
+                    st.write("🔎 Response status:", r.status_code)  # Debug
+                    if r.status_code == 200:
+                        st.success("✅ Thanks! Your personalized Top 5 explanation is on its way to your inbox.")
+                    else:
+                        st.error(f"❌ Oops — something went wrong. Status {r.status_code}")
+                except Exception as e:
+                    st.error(f"⚠️ Connection failed: {e}")
+
+        st.info("✅ This block is DEV-only. This info will be put into a personalized pdf that gets sent via email.")
+
+    # -------------------------
+    # DEV/TEST OUTPUT (not shown in final lead magnet)
+    # -------------------------
+
+    st.markdown("---")
+    st.header("🌟 Your Top 5 Revenue Streams")
+
+    if 'top5' in locals() and not top5.empty:
+        for _, r in top5.iterrows():
+            channel = r["channel_name"]
+            short_narrative = get_channel_short_narrative(channel, narratives, user_scores)
+            st.markdown(f"### {safe_text(channel)}")
+            st.markdown(f"**Score:** {r['score']:.0%}")
+            st.write(short_narrative)
+
+        # --- Full Rack & Stack (all channels, sorted) ---
+        st.markdown("---")
+        st.subheader("📊 Full Rack & Stack (All Channels)")
+
+        rackstack_display = rackstack.copy()
+        rackstack_display["Score"] = (rackstack_display["score"] * 100).round(1).astype(str) + "%"
+        st.dataframe(rackstack_display[["channel_name", "Score"]])
+    else:
+        st.info("👉 Click **See my Top 5** above to generate your personalized results.")
+
+    # 🚧 DEV-ONLY: Preview a couple long narratives
+
+    # if st.expander("🚧 DEV ONLY: Preview Navigation Planner"):
+        #for page in planner_pages[:3]:  # just show first 3 pages for testing
+            #st.components.v1.html(page, height=500, scrolling=True)
+            #st.markdown("---")
+
+# CUT CODE THAT I DON'T WANT TO DELETE UNTIL I'M POSITIVE I DON'T NEED IT
