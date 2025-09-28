@@ -5,6 +5,10 @@ from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML
 from save_to_drive import save_navigation_planner  # we’ll reuse this helper for Drive saves
 import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
 from rsc_from_excel import load_from_excel, build_results
 
 # --- Jinja2 setup ---
