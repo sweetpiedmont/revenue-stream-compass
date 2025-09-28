@@ -797,11 +797,6 @@ if st.session_state.get("show_results", False):
 
     st.info("✅ This block is DEV-only. This info will be put into a personalized pdf that gets sent via email.")
 
-result = get_channel_long_narrative(channel, narratives, user_scores, compass_link=slug)
-if not result:
-    result = f"(⚠️ No narrative generated for {channel})"
-long_narratives[channel] = result
-
 from weasyprint import HTML
 
 def save_navigation_planner_pdf(pages_html, filename="navigation_planner.pdf"):
