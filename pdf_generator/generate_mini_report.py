@@ -58,8 +58,9 @@ if __name__ == "__main__":
         Path("Extreme_Weighting_Scoring_Prototype_for_FormWise_REPAIRED.xlsx")
     )
 
-    # TEMP: pretend every slider was set to 5
-    user_scores = {row["factor_id"]: 5 for _, row in factors.iterrows()}
+    # TEMP: simulate varied scores for testing (instead of all 5s)
+    import random
+    user_scores = {row["factor_id"]: random.randint(3, 8) for _, row in factors.iterrows()}
 
     # Use the results builder (only needs user_scores, narratives, channels)
     top5, all_streams = build_results(user_scores, narratives, channels)
