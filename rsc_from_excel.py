@@ -726,7 +726,7 @@ if __name__ == "__main__":
         if len(set(user_scores.values())) == 1:
             st.warning(
                 "⚠️ It looks like you gave every Field Factor the same score. "
-                "Your results will be based only on how the Compass weights different Field Factors, not your unique situation. "
+                "As a result, your revenue stream rankings will be based only on how the Compass weights different Field Factors, not your unique situation. "
                 "For a more meaningful result, try adjusting your scores so they’re not all identical."
             )
 
