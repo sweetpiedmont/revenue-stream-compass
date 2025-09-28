@@ -362,6 +362,62 @@ def render_navigation_page(channel_name, narrative, advantages, obstacles, rank,
 
     return html
 
+# ---------------
+# RESULTS BUILDER (for Mini Report + Navigation Planner PDFs) 
+# ---------------
+
+def build_results(user_scores, narratives, channels):
+    """Return Top 5 with narratives + full ranked list for Mini Report."""
+    factor_cols = [c for c in channels.columns if c.startswith("f_")]
+    uw = {f"f_{fid}": float(user_scores[fid]) for fid in user_scores.keys()}
+    uw_df = pd.DataFrame([uw])
+    uw_aligned = uw_df[channels[factor_cols].columns]
+
+    # --- Weighted blend calculation ---
+    adjusted_scores = []
+    for idx, row in channels.iterrows():
+        row_factors = row[factor_cols]
+        factor_mask = row_factors > 0
+        if factor_mask.sum() == 0:
+            adjusted_scores.append(0)
+            continue
+        scores = uw_aligned.loc[:, row_factors.index[factor_mask]].values.flatten()
+        weights = row_factors[factor_mask].values
+        if len(scores) == 0 or weights.sum() == 0:
+            adjusted_scores.append(0)
+            continue
+        weighted_avg = np.dot(scores, weights) / weights.sum()
+        score = weighted_avg / 10.0  # normalize
+        adjusted_scores.append(score)
+
+    ch = channels.copy()
+    ch["score"] = adjusted_scores
+
+    rackstack = (
+        ch.loc[:, ["channel_name", "score"]]
+          .sort_values("score", ascending=False)
+          .reset_index(drop=True)
+    )
+
+    # --- Build Top 5 with short narratives ---
+    top5 = []
+    for _, row in rackstack.head(5).iterrows():
+        cname = row["channel_name"]
+        short_blurb = get_channel_short_narrative(cname, narratives, user_scores)
+        top5.append({
+            "name": cname,
+            "score": row["score"],
+            "narrative": short_blurb
+        })
+
+    # --- Build all streams ranked ---
+    all_streams = [
+        {"name": row["channel_name"], "score": row["score"]}
+        for _, row in rackstack.iterrows()
+    ]
+
+    return top5, all_streams
+
 # -------------------------
 # APP STARTS
 # -------------------------
