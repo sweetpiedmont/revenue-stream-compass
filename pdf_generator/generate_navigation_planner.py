@@ -51,10 +51,6 @@ def fetch_user_scores(user_id):
     
     return record, user_scores
 
-# DEBUG Code
-print("User scores from Airtable:", list(user_scores.keys())[:5])
-print("Example factor slugs from Excel:", [slugify(f) for f in factors["factor_name"].head(5)])
-
 def calculate_rankings(user_scores, channels):
 
     factor_cols = [c for c in channels.columns if c.startswith("f_")]
