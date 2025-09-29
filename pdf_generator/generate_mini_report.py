@@ -1,27 +1,55 @@
 # generate_mini_report.py
 
+import os
+import sys
+import requests
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML
-from save_to_drive import save_navigation_planner  # we’ll reuse this helper for Drive saves
-import sys
-from pathlib import Path
 
-sys.path.append(str(Path(__file__).resolve().parent.parent))
+from save_to_drive import save_navigation_planner  # if you still need this helper
 
-from rsc_from_excel import load_from_excel, build_results
+# Airtable config
+AIRTABLE_API_KEY = os.environ.get("AIRTABLE_API_KEY")
+BASE_ID = "appXXXXXXXXXXXX"
+TABLE_ID = "tblXXXXXXXXXXXX"
 
 # --- Jinja2 setup ---
 env = Environment(loader=FileSystemLoader("pdf_generator/templates"))
 
+def fetch_latest_user():
+    """Fetch latest user record from Airtable."""
+    url = f"https://api.airtable.com/v0/{BASE_ID}/{TABLE_ID}"
+    headers = {"Authorization": f"Bearer {AIRTABLE_API_KEY}"}
+    params = {"maxRecords": 1, "sort[0][field]": "Created At", "sort[0][direction]": "desc"}
+    resp = requests.get(url, headers=headers, params=params)
+    resp.raise_for_status()
+    record = resp.json()["records"][0]["fields"]
+
+    # Build Top 5 list
+    top5_names = record.get("Top5 Name", [])
+    top5_narratives = record.get("Top5 Short Narrative", [])
+    top5 = [{"name": n, "narrative": t} for n, t in zip(top5_names, top5_narratives)]
+
+    # Build All Streams list (just ranked names)
+    all_names = record.get("All Streams Name", [])
+    all_ranks = record.get("All Streams Rank", [])
+    all_streams = sorted(
+        [{"name": n, "rank": r} for n, r in zip(all_names, all_ranks)],
+        key=lambda x: x["rank"]
+    )
+
+    return {
+        "user_id": record.get("User ID", "test123"),
+        "user_name": record.get("First Name", "Test User"),
+        "top5": top5,
+        "all_streams": all_streams,
+    }
+
 def render_mini_report_html(user_name, top5, all_streams):
     """Render Mini-Report HTML from Jinja template with given data."""
     template = env.get_template("mini_report.html")
-    return template.render(
-        user_name=user_name,
-        top5=top5,
-        all_streams=all_streams,
-    )
+    return template.render(user_name=user_name, top5=top5, all_streams=all_streams)
 
 def generate_mini_report(user_id, user_name, top5, all_streams, outpath="mini_report.pdf"):
     """Generate Mini-Report PDF and save locally + to Google Drive."""
@@ -33,49 +61,19 @@ def generate_mini_report(user_id, user_name, top5, all_streams, outpath="mini_re
 
     # Google Drive write
     drive_folder = "/Users/sharon/Library/CloudStorage/GoogleDrive-hello@sweetpiedmontacademy.com/My Drive/Mini Report Storage"
-
     folder = Path(drive_folder)
     folder.mkdir(parents=True, exist_ok=True)
 
     filename = f"mini_report_{user_id}.pdf"
     outpath_drive = folder / filename
-
     HTML(string=html_content).write_pdf(str(outpath_drive))
     print(f"✅ Saved Mini-Report for user {user_id} at {outpath_drive}")
 
-
 if __name__ == "__main__":
-    # Accept user_id as argument
-    if len(sys.argv) > 1:
-        user_id = sys.argv[1]
-    else:
-        user_id = "test123"
-
-    # --- Pull test data from Airtable ---
-    user_name = "Test User"
-
-    factors, categories, channels, narratives = load_from_excel(
-        Path("Extreme_Weighting_Scoring_Prototype_for_FormWise_REPAIRED.xlsx")
+    user_data = fetch_latest_user()
+    generate_mini_report(
+        user_data["user_id"],
+        user_data["user_name"],
+        user_data["top5"],
+        user_data["all_streams"],
     )
-
-    # TEMP: simulate varied scores for testing (instead of all 5s)
-    import random
-
-    user_scores = {}
-    for i, row in enumerate(factors.itertuples()):
-        fid = row.factor_id
-        if i % 7 == 0:
-            # force some lows
-            user_scores[fid] = random.randint(1, 3)
-        elif i % 5 == 0:
-            # force some highs
-            user_scores[fid] = random.randint(8, 10)
-        else:
-            # the rest are mid-range
-            user_scores[fid] = random.randint(4, 7)
-
-    # Use the results builder (only needs user_scores, narratives, channels)
-    top5, all_streams = build_results(user_scores, narratives, channels)
-
-    generate_mini_report(user_id, user_name, top5, all_streams)
-
