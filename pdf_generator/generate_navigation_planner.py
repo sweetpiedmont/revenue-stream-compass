@@ -1,13 +1,57 @@
 # generate_navigation_planner.py
 
+import os
+import sys
+import requests
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML
-from save_to_drive import save_navigation_planner
-import sys   # 👈 new import
 
-# Set up Jinja environment (points to templates folder)
-env = Environment(loader=FileSystemLoader("templates"))
+# Airtable config
+AIRTABLE_API_KEY = os.environ.get("AIRTABLE_API_KEY")
+BASE_ID = "appgHTZhO9XkeAESy"
+TABLE_ID = "tblsH62BjRZiXUaWV"
+
+# --- Jinja2 setup ---
+env = Environment(loader=FileSystemLoader("pdf_generator/templates"))
+
+def ensure_list(x):
+    if isinstance(x, list):
+        return x
+    elif isinstance(x, str):
+        return [item.strip() for item in x.split(",") if item.strip()]
+    else:
+        return []
+
+def fetch_user_by_id(user_id):
+    """Fetch user record from Airtable by User ID."""
+    url = f"https://api.airtable.com/v0/{BASE_ID}/{TABLE_ID}"
+    headers = {"Authorization": f"Bearer {AIRTABLE_API_KEY}"}
+    params = {"filterByFormula": f"{{User ID}} = '{user_id}'", "maxRecords": 1}
+    resp = requests.get(url, headers=headers, params=params)
+    resp.raise_for_status()
+    records = resp.json()["records"]
+    if not records:
+        raise ValueError(f"No record found for User ID {user_id}")
+    record = records[0]["fields"]
+
+    return {
+        "user_id": record.get("User ID", "test123"),
+        "user_name": record.get("First Name", "Test User"),
+        # Navigation Planner will probably need more fields than Top5/All Streams,
+        # but let's pull these for now as placeholders:
+        "top5": list(zip(
+            ensure_list(record.get("Top5 Name", [])),
+            ensure_list(record.get("Top5 Short Narrative", []))
+        )),
+        "all_streams": sorted(
+            [{"name": n, "rank": r} for n, r in zip(
+                ensure_list(record.get("All Streams Name", [])),
+                ensure_list(record.get("All Streams Rank", []))
+            )],
+            key=lambda x: x["rank"]
+        )
+    }
 
 def render_navigation_html(user_name, top5, channels):
     """Render HTML from Jinja template with given data."""
