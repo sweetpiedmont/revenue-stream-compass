@@ -60,7 +60,19 @@ if __name__ == "__main__":
 
     # TEMP: simulate varied scores for testing (instead of all 5s)
     import random
-    user_scores = {row["factor_id"]: random.randint(3, 8) for _, row in factors.iterrows()}
+
+    user_scores = {}
+    for i, row in enumerate(factors.itertuples()):
+        fid = row.factor_id
+        if i % 7 == 0:
+            # force some lows
+            user_scores[fid] = random.randint(1, 3)
+        elif i % 5 == 0:
+            # force some highs
+            user_scores[fid] = random.randint(8, 10)
+        else:
+            # the rest are mid-range
+            user_scores[fid] = random.randint(4, 7)
 
     # Use the results builder (only needs user_scores, narratives, channels)
     top5, all_streams = build_results(user_scores, narratives, channels)
