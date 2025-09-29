@@ -8,6 +8,7 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML
 import pandas as pd
+import numpy as np
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
@@ -15,7 +16,8 @@ from rsc_from_excel import (
     load_from_excel,
     get_channel_long_narrative,
     render_navigation_page,
-    save_navigation_planner_pdf
+    save_navigation_planner_pdf,
+    slugify
 )
 
 # Airtable config
@@ -42,6 +44,62 @@ def fetch_user_scores(user_id):
     user_scores = json.loads(raw_scores)
     return record, user_scores
 
+def calculate_rankings(user_scores, channels):
+
+    factor_cols = [c for c in channels.columns if c.startswith("f_")]
+
+    # Align user_scores with channel factor columns
+    uw = {f"f_{fid}": float(user_scores.get(fid, 0)) for fid in user_scores.keys()}
+    uw_df = pd.DataFrame([uw])
+    uw_aligned = uw_df.reindex(columns=channels[factor_cols].columns, fill_value=0)
+
+    ch = channels.copy()
+
+    # --- Fit score (weighted avg) ---
+    adjusted_scores = []
+    for idx, row in channels.iterrows():
+        row_factors = row[factor_cols]
+        factor_mask = row_factors > 0
+
+        if factor_mask.sum() == 0:
+            adjusted_scores.append(0)
+            continue
+
+        scores = uw_aligned.loc[:, row_factors.index[factor_mask]].values.flatten()
+        weights = row_factors[factor_mask].values
+
+        if len(scores) == 0 or weights.sum() == 0:
+            adjusted_scores.append(0)
+            continue
+
+        weighted_avg = np.dot(scores, weights) / weights.sum()
+        score = weighted_avg / 10.0  # normalize
+        adjusted_scores.append(score)
+
+    ch["fit_score"] = adjusted_scores
+
+    # --- Coverage score ---
+    max_factors_high = (channels[factor_cols] >= 8).sum(axis=1).max()
+    coverages = []
+    for idx, row in channels.iterrows():
+        k = (row[factor_cols] >= 8).sum()
+        coverage = k / max_factors_high if max_factors_high > 0 else 0
+        coverages.append(coverage)
+    ch["coverage"] = coverages
+
+    # --- Blend ---
+    ch["blend_score_70"] = 0.7 * ch["fit_score"] + 0.3 * ch["coverage"]
+    ch["score"] = ch["blend_score_70"]
+
+    # --- Ranked output ---
+    rackstack = (
+        ch.loc[:, ["channel_name", "fit_score", "coverage", "blend_score_70", "score"]]
+          .sort_values("score", ascending=False)
+          .reset_index(drop=True)
+    )
+
+    return rackstack
+
 def generate_navigation_planner(user_id, user_name, user_scores, outpath="navigation_planner.pdf"):
     """Generate Navigation Planner PDF for this user."""
     # Load data from Excel
@@ -57,45 +115,15 @@ def generate_navigation_planner(user_id, user_name, user_scores, outpath="naviga
         for f, cat in factor_to_category.items()
     }
 
-    # --- SCORING & RANKING (same as Streamlit) ---
-    factor_cols = [c for c in channels.columns if c.startswith("f_")]
-    uw = {f"f_{fid}": float(user_scores[fid]) for fid in user_scores.keys()}
-    uw_df = pd.DataFrame([uw])
-    # ✅ Align user scores with channel factor columns
-    uw_aligned = uw_df.reindex(columns=factor_cols, fill_value=0)
-
-    adjusted_scores = []
-    for idx, row in channels.iterrows():
-        row_factors = row[factor_cols]
-        factor_mask = row_factors > 0
-        if factor_mask.sum() == 0:
-            adjusted_scores.append(0)
-            continue
-        scores = uw_aligned.loc[:, row_factors.index[factor_mask]].values.flatten()
-        weights = row_factors[factor_mask].values
-        if len(scores) == 0 or weights.sum() == 0:
-            adjusted_scores.append(0)
-            continue
-        weighted_avg = (scores @ weights) / weights.sum()
-        score = weighted_avg / 10.0
-        adjusted_scores.append(score)
-
-    ch = channels.copy()
-    ch["score"] = adjusted_scores
-
-    rackstack = (
-        ch.loc[:, ["channel_name", "score"]]
-          .sort_values("score", ascending=False)
-          .reset_index(drop=True)
-    )
-
     # --- Build all 18 pages in RANKED ORDER ---
+    rackstack = calculate_rankings(user_scores, channels)
+    
     planner_pages = []
     for i, row in rackstack.iterrows():
         ch_name = row["channel_name"]
         rank = i + 1
 
-        # Narrative (2 short paragraphs)
+        # Long Narrative (2 short paragraphs)
         narrative = get_channel_long_narrative(ch_name, narratives, user_scores)
 
         # Advantages/obstacles (weight >= 4 factors)
@@ -121,19 +149,18 @@ def generate_navigation_planner(user_id, user_name, user_scores, outpath="naviga
         )
         planner_pages.append(page_html)
 
-    # Save PDF locally
+    # Save PDF once
     filename = f"navigation_planner_{user_id}.pdf"
-    save_navigation_planner_pdf(planner_pages, filename)
+    local_path = Path(filename)
+    save_navigation_planner_pdf(planner_pages, str(local_path))
 
-    # Save copy to Google Drive
-    drive_folder = "/Users/sharon/Library/CloudStorage/GoogleDrive-hello@sweetpiedmontacademy.com/My Drive/Navigation Planner Storage"
-    Path(drive_folder).mkdir(parents=True, exist_ok=True)
-    outpath_drive = Path(drive_folder) / filename
-    save_navigation_planner_pdf(planner_pages, str(outpath_drive))
+    # Copy to Drive
+    drive_folder = Path("/Users/sharon/Library/CloudStorage/GoogleDrive-hello@sweetpiedmontacademy.com/My Drive/Navigation Planner Storage")
+    drive_folder.mkdir(parents=True, exist_ok=True)
+    drive_path = drive_folder / filename
+    local_path.replace(drive_path)  # move file instead of regenerating
 
-    print(f"✅ Navigation Planner written to {filename}")
-    print(f"✅ Saved Navigation Planner for user {user_id} at {outpath_drive}")
-
+    print(f"✅ Navigation Planner written to {drive_path}")
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
