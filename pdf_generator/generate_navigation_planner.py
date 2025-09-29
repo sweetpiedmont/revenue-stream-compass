@@ -128,7 +128,7 @@ def generate_navigation_planner(user_id, user_name, user_scores, outpath="naviga
 
         # Advantages/obstacles (weight >= 4 factors)
         df = narratives[(narratives["channel_name"] == ch_name) & (narratives["weight"] >= 4)].copy()
-        df["factor_id"] = df["factor_name"].str.lower().str.replace(" ", "_")
+        df["factor_id"] = df["factor_name"].map(slugify)
         df["user_score"] = df["factor_id"].map(lambda fid: user_scores.get(fid, 0))
 
         advantages = [
