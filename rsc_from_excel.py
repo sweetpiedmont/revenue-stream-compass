@@ -786,7 +786,8 @@ if __name__ == "__main__":
                     "top5": top5_with_narratives,  # list, Zapier splits
                     "all_streams": all_streams,    # list, Zapier splits
                     "top5_json": json.dumps(top5_with_narratives),   # preserved JSON string
-                    "all_streams_json": json.dumps(all_streams)      # preserved JSON string
+                    "all_streams_json": json.dumps(all_streams),      # preserved JSON string
+                    "user_scores_json": json.dumps(user_scores),
                 }
 
                 try:
