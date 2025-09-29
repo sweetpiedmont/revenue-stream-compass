@@ -17,8 +17,15 @@ TABLE_ID = "tblsH62BjRZiXUaWV"
 # --- Jinja2 setup ---
 env = Environment(loader=FileSystemLoader("pdf_generator/templates"))
 
+def ensure_list(x):
+    if isinstance(x, list):
+        return x
+    elif isinstance(x, str):
+        return [x]
+    else:
+        return []
+
 def fetch_latest_user():
-    """Fetch latest user record from Airtable."""
     url = f"https://api.airtable.com/v0/{BASE_ID}/{TABLE_ID}"
     headers = {"Authorization": f"Bearer {AIRTABLE_API_KEY}"}
     params = {"maxRecords": 1, "sort[0][field]": "Created At", "sort[0][direction]": "desc"}
@@ -26,14 +33,14 @@ def fetch_latest_user():
     resp.raise_for_status()
     record = resp.json()["records"][0]["fields"]
 
-    # Build Top 5 list
-    top5_names = record.get("Top5 Name", [])
-    top5_narratives = record.get("Top5 Short Narrative", [])
+    # Force Top5 fields into lists
+    top5_names = ensure_list(record.get("Top5 Name", []))
+    top5_narratives = ensure_list(record.get("Top5 Short Narrative", []))
     top5 = [{"name": n, "narrative": t} for n, t in zip(top5_names, top5_narratives)]
 
-    # Build All Streams list (just ranked names)
-    all_names = record.get("All Streams Name", [])
-    all_ranks = record.get("All Streams Rank", [])
+    # Force All Streams fields into lists
+    all_names = ensure_list(record.get("All Streams Name", []))
+    all_ranks = ensure_list(record.get("All Streams Rank", []))
     all_streams = sorted(
         [{"name": n, "rank": r} for n, r in zip(all_names, all_ranks)],
         key=lambda x: x["rank"]
