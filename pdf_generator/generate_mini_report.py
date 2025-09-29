@@ -64,7 +64,7 @@ def render_mini_report_html(user_name, top5, all_streams):
     template = env.get_template("mini_report.html")
     return template.render(user_name=user_name, top5=top5, all_streams=all_streams)
 
-def generate_mini_report(user_id, user_name, top5, all_streams, outpath="mini_report.pdf"):
+def generate_mini_report(user_id, user_name, top5, all_streams, outpath="mini_report.pdf", save_to_drive=True):
     """Generate Mini-Report PDF and save locally + to Google Drive."""
     html_content = render_mini_report_html(user_name, top5, all_streams)
 
@@ -72,15 +72,16 @@ def generate_mini_report(user_id, user_name, top5, all_streams, outpath="mini_re
     HTML(string=html_content).write_pdf(outpath)
     print(f"✅ Mini-Report written to {outpath}")
 
-    # Google Drive write
-    drive_folder = "/Users/sharon/Library/CloudStorage/GoogleDrive-hello@sweetpiedmontacademy.com/My Drive/Mini Report Storage"
-    folder = Path(drive_folder)
-    folder.mkdir(parents=True, exist_ok=True)
+    # Only save to local Google Drive folder if flag is True
+    if save_to_drive:
+        drive_folder = "/Users/sharon/Library/CloudStorage/GoogleDrive-hello@sweetpiedmontacademy.com/My Drive/Mini Report Storage"
+        folder = Path(drive_folder)
+        folder.mkdir(parents=True, exist_ok=True)
 
-    filename = f"mini_report_{user_id}.pdf"
-    outpath_drive = folder / filename
-    HTML(string=html_content).write_pdf(str(outpath_drive))
-    print(f"✅ Saved Mini-Report for user {user_id} at {outpath_drive}")
+        filename = f"mini_report_{user_id}.pdf"
+        outpath_drive = folder / filename
+        HTML(string=html_content).write_pdf(str(outpath_drive))
+        print(f"✅ Saved Mini-Report for user {user_id} at {outpath_drive}")
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
