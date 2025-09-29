@@ -679,7 +679,7 @@ if __name__ == "__main__":
 
         # --- Build Navigation Planner pages (all 18 streams, ordered by rank) ---
         # --- Build long narratives for ALL 18 channels (paid Compass only) ---
-        long_narratives = {}
+        """long_narratives = {}
         for channel in ch["channel_name"].unique():
             slug = ch.loc[ch["channel_name"] == channel, "compass_link"].values[0]
             long_narratives[channel] = get_channel_long_narrative(
@@ -720,7 +720,7 @@ if __name__ == "__main__":
                 rank=rank,
                 compass_link=compass_link,
             )
-            planner_pages.append(page_html)
+            planner_pages.append(page_html)"""
 
         # --- Show Top 5 ---
         # Global check: did the user leave all sliders the same?
