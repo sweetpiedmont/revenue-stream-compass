@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 from jinja2 import Environment, FileSystemLoader
 import uuid
 import json
+import base64
 
 # -------------------------
 # SETUP
@@ -776,18 +777,22 @@ if __name__ == "__main__":
                     for i, row in rackstack.iterrows()
                 ]
 
-                # Final JSON payload
+                # Final JSON payload with Base64 encoding to stop Zapier from exploding JSON files
+                encoded_scores = base64.b64encode(
+                    json.dumps(user_scores).encode("utf-8")
+                ).decode("utf-8")
+
                 payload = {
                     "user_id": user_id,
                     "email": email,
                     "first_name": first_name,
                     "last_name": last_name,
                     "farm_name": farm_name,
-                    "top5": top5_with_narratives,  # list, Zapier splits
-                    "all_streams": all_streams,    # list, Zapier splits
-                    "top5_json": json.dumps(top5_with_narratives),   # preserved JSON string
-                    "all_streams_json": json.dumps(all_streams),      # preserved JSON string
-                    "user_scores_json": json.dumps(user_scores),
+                    "top5": top5_with_narratives,
+                    "all_streams": all_streams,
+                    "top5_json": json.dumps(top5_with_narratives),
+                    "all_streams_json": json.dumps(all_streams),
+                    "user_scores_json": encoded_scores,   # 👈 safe Base64 string
                 }
 
                 try:
