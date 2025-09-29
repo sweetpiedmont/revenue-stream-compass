@@ -48,6 +48,9 @@ def generate_navigation_planner(user_id, user_name, user_scores, outpath="naviga
     factors, categories, channels, narratives = load_from_excel(
         Path("Extreme_Weighting_Scoring_Prototype_for_FormWise_REPAIRED.xlsx")
     )
+    # 🔎 Debug: what columns are in channels?
+    print("Channels columns:", channels.columns.tolist()[:30])  # show first 30
+    print("Total columns:", len(channels.columns))
 
     # Build factor → category color map
     factor_to_category = dict(zip(factors["factor_name"], factors["category_name"]))
