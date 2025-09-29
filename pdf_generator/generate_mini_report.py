@@ -11,8 +11,8 @@ from save_to_drive import save_navigation_planner  # if you still need this help
 
 # Airtable config
 AIRTABLE_API_KEY = os.environ.get("AIRTABLE_API_KEY")
-BASE_ID = "appXXXXXXXXXXXX"
-TABLE_ID = "tblXXXXXXXXXXXX"
+BASE_ID = "appgHTZhO9XkeAESy"
+TABLE_ID = "tblsH62BjRZiXUaWV"
 
 # --- Jinja2 setup ---
 env = Environment(loader=FileSystemLoader("pdf_generator/templates"))

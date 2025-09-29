@@ -48,31 +48,25 @@
     <p>Hello {{ user_name }}, here’s your personalized snapshot from the Field Factors Self-Assessment.</p>
     <div class="page-break"></div>
 
-    <!-- Top 5 -->
-    <h2>Your Top 5 Matches</h2>
-    {% for stream in top5 %}
-        <div class="section">
-            <h3>{{ loop.index }}. {{ stream.name }} ({{ (stream.score * 100) | round(0) }}%)</h3>
-            <p>{{ stream.narrative }}</p>
-        </div>
-    {% endfor %}
-    <div class="page-break"></div>
+<!-- Top 5 -->
+<h2>Your Top 5 Matches</h2>
+{% for stream in top5 %}
+  <div class="section">
+    <h3>{{ loop.index }}. {{ stream.name }}</h3>
+    <p>{{ stream.narrative }}</p>
+  </div>
+{% endfor %}
 
-    <!-- Full Rankings -->
-    <h2>Your Full Rankings</h2>
-    <table style="width:100%; border-collapse: collapse;">
-        {% for s in all_streams %}
-        <tr>
-            <td style="padding: 4px;">{{ loop.index }}. {{ s.name }}</td>
-            <td style="padding: 4px; width: 60%;">
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: {{ (s.score * 100) | round(0) }}%;"></div>
-                </div>
-            </td>
-            <td style="padding: 4px;">{{ (s.score * 100) | round(0) }}%</td>
-        </tr>
-        {% endfor %}
-    </table>
+<div class="page-break"></div>
+
+<!-- Full Rankings -->
+<h2>Your Full Rankings</h2>
+<ol>
+  {% for s in all_streams %}
+    <li>{{ s.name }}</li>
+  {% endfor %}
+</ol>
+
     <div class="page-break"></div>
 
     <!-- CTA -->
