@@ -25,13 +25,19 @@ def ensure_list(x):
     else:
         return []
 
-def fetch_latest_user():
+def fetch_user_by_id(user_id):
     url = f"https://api.airtable.com/v0/{BASE_ID}/{TABLE_ID}"
     headers = {"Authorization": f"Bearer {AIRTABLE_API_KEY}"}
-    params = {"maxRecords": 1, "sort[0][field]": "Created At", "sort[0][direction]": "desc"}
+    params = {
+        "filterByFormula": f"{{User ID}} = '{user_id}'",
+        "maxRecords": 1
+    }
     resp = requests.get(url, headers=headers, params=params)
     resp.raise_for_status()
-    record = resp.json()["records"][0]["fields"]
+    records = resp.json()["records"]
+    if not records:
+        raise ValueError(f"No record found for User ID {user_id}")
+    record = records[0]["fields"]
 
     # Force Top5 fields into lists
     top5_names = ensure_list(record.get("Top5 Name", []))
