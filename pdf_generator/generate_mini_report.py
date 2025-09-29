@@ -118,6 +118,7 @@ def generate_report(payload):
         user_data["top5"],
         user_data["all_streams"],
         outpath=outpath,
+        save_to_drive=False
     )
 
     # Upload to GCS
