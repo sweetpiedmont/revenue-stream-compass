@@ -7,6 +7,7 @@ import requests
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML
+import pandas as pd
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
