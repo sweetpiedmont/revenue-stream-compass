@@ -9,6 +9,7 @@ from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML
 import pandas as pd
 import numpy as np
+import base64
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
@@ -41,7 +42,12 @@ def fetch_user_scores(user_id):
     record = records[0]["fields"]
 
     raw_scores = record.get("User Scores JSON", "{}")
-    user_scores = json.loads(raw_scores)
+    try:
+        decoded = base64.b64decode(raw_scores).decode("utf-8")
+        user_scores = json.loads(decoded)
+    except Exception as e:
+        print(f"⚠️ Failed to decode scores, using empty: {e}")
+        user_scores = {}
     
     return record, user_scores
 
