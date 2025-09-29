@@ -95,3 +95,46 @@ if __name__ == "__main__":
         user_data["top5"],
         user_data["all_streams"],
     )
+
+from google.cloud import storage
+from datetime import timedelta
+import os
+
+def generate_report(payload):
+    """Generate mini-report PDF, upload to GCS, return signed URL."""
+    user_id = payload.get("user_id")
+    if not user_id:
+        raise ValueError("Payload must include user_id")
+
+    # Fetch data from Airtable
+    user_data = fetch_user_by_id(user_id)
+
+    # Generate PDF in /tmp
+    filename = f"mini_report_{user_id}.pdf"
+    outpath = f"/tmp/{filename}"
+    generate_mini_report(
+        user_data["user_id"],
+        user_data["user_name"],
+        user_data["top5"],
+        user_data["all_streams"],
+        outpath=outpath,
+    )
+
+    # Upload to GCS
+    bucket_name = os.environ.get("GCS_BUCKET_NAME")
+    if not bucket_name:
+        raise ValueError("Missing GCS_BUCKET_NAME env var")
+
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(filename)
+    blob.upload_from_filename(outpath)
+
+    # Generate signed URL (valid for 7 days)
+    url = blob.generate_signed_url(
+        version="v4",
+        expiration=timedelta(days=7),
+        method="GET"
+    )
+
+    return url
