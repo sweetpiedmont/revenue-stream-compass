@@ -679,48 +679,48 @@ if __name__ == "__main__":
 
         # --- Build Navigation Planner pages (all 18 streams, ordered by rank) ---
         # --- Build long narratives for ALL 18 channels (paid Compass only) ---
-        """long_narratives = {}
-        for channel in ch["channel_name"].unique():
-            slug = ch.loc[ch["channel_name"] == channel, "compass_link"].values[0]
-            long_narratives[channel] = get_channel_long_narrative(
-                channel,
-                narratives,
-                user_scores,
-            )
+        # long_narratives = {}
+        # for channel in ch["channel_name"].unique():
+        #     slug = ch.loc[ch["channel_name"] == channel, "compass_link"].values[0]
+        #     long_narratives[channel] = get_channel_long_narrative(
+        #         channel,
+        #         narratives,
+        #         user_scores,
+        #     )
 
-        planner_pages = []
-        for i, row in rackstack.iterrows():
-            ch_name = row["channel_name"]
-            rank = i + 1
-            narrative = long_narratives.get(ch_name, "")
+        # planner_pages = []
+        # for i, row in rackstack.iterrows():
+        #     ch_name = row["channel_name"]
+        #     rank = i + 1
+        #     narrative = long_narratives.get(ch_name, "")
 
-            # Get high/low user factors for this channel
-            df = narratives[(narratives["channel_name"] == ch_name) & (narratives["weight"] >= 4)].copy()
-            df["factor_id"] = df["factor_name"].map(slugify)
-            df["user_score"] = df["factor_id"].map(lambda fid: user_scores.get(fid, 0))
+        #     # Get high/low user factors for this channel
+        #     df = narratives[(narratives["channel_name"] == ch_name) & (narratives["weight"] >= 4)].copy()
+        #     df["factor_id"] = df["factor_name"].map(slugify)
+        #     df["user_score"] = df["factor_id"].map(lambda fid: user_scores.get(fid, 0))
 
-            advantages = [
-                (fname, factor_to_color.get(fname, "#d9fdd3"))  # default greenish if missing
-                for fname in df[df["user_score"] >= 7]["factor_name"].tolist()
-            ]
+        #     advantages = [
+        #         (fname, factor_to_color.get(fname, "#d9fdd3"))  # default greenish if missing
+        #         for fname in df[df["user_score"] >= 7]["factor_name"].tolist()
+        #     ]
 
-            obstacles = [
-                (fname, factor_to_color.get(fname, "#fdd3d3"))  # default reddish if missing
-                for fname in df[df["user_score"] <= 3]["factor_name"].tolist()
-            ]
+        #     obstacles = [
+        #         (fname, factor_to_color.get(fname, "#fdd3d3"))  # default reddish if missing
+        #         for fname in df[df["user_score"] <= 3]["factor_name"].tolist()
+        #     ]
 
-            compass_link = ch.loc[ch["channel_name"] == ch_name, "compass_link"].values[0]
+        #     compass_link = ch.loc[ch["channel_name"] == ch_name, "compass_link"].values[0]
 
-            # Render HTML for this page
-            page_html = render_navigation_page(
-                channel_name=ch_name,
-                narrative=narrative,
-                advantages=advantages,
-                obstacles=obstacles,
-                rank=rank,
-                compass_link=compass_link,
-            )
-            planner_pages.append(page_html)"""
+        #     # Render HTML for this page
+        #     page_html = render_navigation_page(
+        #         channel_name=ch_name,
+        #         narrative=narrative,
+        #         advantages=advantages,
+        #         obstacles=obstacles,
+        #         rank=rank,
+        #         compass_link=compass_link,
+        #     )
+        #     planner_pages.append(page_html)
 
         # --- Show Top 5 ---
         # Global check: did the user leave all sliders the same?
