@@ -83,7 +83,12 @@ def generate_mini_report(user_id, user_name, top5, all_streams, outpath="mini_re
     print(f"✅ Saved Mini-Report for user {user_id} at {outpath_drive}")
 
 if __name__ == "__main__":
-    user_data = fetch_latest_user()
+    if len(sys.argv) > 1:
+        user_id = sys.argv[1]
+        user_data = fetch_user_by_id(user_id)
+    else:
+        user_data = fetch_latest_user()
+
     generate_mini_report(
         user_data["user_id"],
         user_data["user_name"],
