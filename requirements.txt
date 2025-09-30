@@ -5,3 +5,7 @@ openpyxl
 openai>=1.0.0
 python-dotenv
 flask
+weasyprint
+jinja2
+requests
+google-cloud-storage
