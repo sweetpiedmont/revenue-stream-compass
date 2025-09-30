@@ -27,4 +27,4 @@ COPY . .
 EXPOSE 8080
 
 # Run a lightweight server with Flask to serve mini_report
-CMD ["python", "pdf_generator/server.py"]
+CMD ["python3", "pdf_generator/server.py"]
