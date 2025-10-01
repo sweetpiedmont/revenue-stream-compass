@@ -27,4 +27,4 @@ COPY . .
 EXPOSE 8080
 
 # Run a lightweight server with Flask to serve mini_report
-CMD ["gunicorn", "-b", ":8080", "main:app"]
+CMD ["gunicorn", "-b", ":8080", "server:app"]
