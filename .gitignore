@@ -1,5 +1,25 @@
+# Existing ignores
 *.older version.py
 *with user input headers.py
 *working with no resilience bonus.py
 rsc_streamlit_stub.py
 .env
+
+# 🔒 Protect secrets
+*.json
+*.pem
+*.key
+*.crt
+
+# If you only want to ignore service account keys (not *all* JSON files):
+# *-key.json
+# *-credentials.json
+
+# Virtual environments
+venv/
+.envrc
+.env.local
+
+# Python cache
+__pycache__/
+*.pyc
