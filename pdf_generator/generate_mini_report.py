@@ -78,7 +78,7 @@ def generate_mini_report(user_id, user_name, top5, all_streams, outpath="mini_re
         folder = Path(drive_folder)
         folder.mkdir(parents=True, exist_ok=True)
 
-        filename = f"mini_report_{user_id}.pdf"
+        filename = f"{user_id}_mini_report.pdf"
         outpath_drive = folder / filename
         HTML(string=html_content).write_pdf(str(outpath_drive))
         print(f"✅ Saved Mini-Report for user {user_id} at {outpath_drive}")
@@ -129,7 +129,7 @@ def generate_report(payload):
 
     storage_client = storage.Client()
     bucket = storage_client.bucket(bucket_name)
-    blob = bucket.blob(filename)
+    blob = bucket.blob(f"mini-reports/{filename}")
     blob.upload_from_filename(outpath)
 
     # Generate signed URL (valid for 7 days)
