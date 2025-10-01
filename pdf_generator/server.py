@@ -7,15 +7,12 @@ from generate_mini_report import generate_report
 
 app = Flask(__name__)
 
-@app.route("/", methods=["POST"])
-def main():
+@app.route("/generate", methods=["POST"])
+def generate():
     try:
         payload = request.json or {}
-        # Example: assume payload has {"user_scores": {...}, "user_email": "..."}
         pdf_url = generate_report(payload)
-
         return jsonify({"status": "ok", "pdf_url": pdf_url})
-
     except Exception as e:
         return jsonify({
             "status": "error",
@@ -28,4 +25,3 @@ import os
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))  # Cloud Run gives us PORT
     app.run(host="0.0.0.0", port=port)
-
