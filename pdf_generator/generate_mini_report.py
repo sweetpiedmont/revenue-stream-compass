@@ -135,7 +135,7 @@ def generate_report(payload):
     # Generate signed URL (valid for 7 days)
     url = blob.generate_signed_url(
         version="v4",
-        expiration=timedelta(days=7),
+        expiration=timedelta(days=3),
         method="GET"
     )
 
