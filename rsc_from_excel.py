@@ -77,6 +77,7 @@ def get_local_excel_path():
 def load_from_excel():
     """Fetch Excel from GCS, load key sheets, and build factors + channels."""
     local_path = get_local_excel_path()
+    st.write("DEBUG - local_path:", local_path, type(local_path))
 
     if not os.path.exists(local_path):
         bucket = gcs_client.bucket("rsc-pdf-reports-bucket")
