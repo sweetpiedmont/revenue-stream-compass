@@ -100,6 +100,10 @@ if __name__ == "__main__":
 from google.cloud import storage
 from datetime import timedelta
 import os
+from google.auth import default
+
+# Get the current Cloud Run credentials
+credentials, project_id = default()
 
 def generate_report(payload):
     """Generate mini-report PDF, upload to GCS, return signed URL."""
@@ -137,7 +141,8 @@ def generate_report(payload):
         version="v4",
         expiration=timedelta(days=3),
         method="GET",
-        service_account_email="pdf-signer@rsc-pdf-reports.iam.gserviceaccount.com"
+        service_account_email="pdf-signer@rsc-pdf-reports.iam.gserviceaccount.com",
+        credentials=credentials  # 👈 force IAM-based signing
     )
 
     return url
