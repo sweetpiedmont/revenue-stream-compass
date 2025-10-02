@@ -3,7 +3,7 @@ import traceback
 
 # Import your existing mini-report function
 # (adjust the function name if it's not actually called generate_report)
-from generate_mini_report import generate_report  
+from pdf_generator.generate_mini_report import generate_report 
 
 app = Flask(__name__)
 
