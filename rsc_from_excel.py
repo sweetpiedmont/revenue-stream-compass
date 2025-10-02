@@ -803,6 +803,9 @@ if __name__ == "__main__":
                     json.dumps(user_scores).encode("utf-8")
                 ).decode("utf-8")
 
+                st.write("DEBUG - Raw User Scores:", user_scores)
+                st.write("DEBUG - Encoded User Scores JSON:", encoded_scores)
+
                 payload = {
                     "user_id": user_id,
                     "email": email,
