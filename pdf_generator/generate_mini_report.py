@@ -7,7 +7,7 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML
 
-from save_to_drive import save_navigation_planner  # if you still need this helper
+# from save_to_drive import save_navigation_planner  # if you still need this helper
 
 # Airtable config
 AIRTABLE_API_KEY = os.environ.get("AIRTABLE_API_KEY")
