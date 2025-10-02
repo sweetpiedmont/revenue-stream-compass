@@ -122,21 +122,22 @@ def generate_report(payload):
     blob.upload_from_filename(outpath)
 
     # 🔑 Use IAM Signer to generate signed URL (Cloud Run friendly)
-    from google.auth import default, iam
+    from google.auth import default, impersonated_credentials
     from google.auth.transport import requests
 
     credentials, project_id = default()
-    signer = iam.Signer(
-        request=requests.Request(),
-        credentials=credentials,
-        service_account_email="pdf-signer@rsc-pdf-reports.iam.gserviceaccount.com"
+
+    # Impersonate pdf-signer SA instead of trying to use its key
+    target_creds = impersonated_credentials.Credentials(
+        source_credentials=credentials,
+        target_principal="pdf-signer@rsc-pdf-reports.iam.gserviceaccount.com",
+        target_scopes=["https://www.googleapis.com/auth/cloud-platform"],
+        lifetime=300
     )
 
     url = blob.generate_signed_url(
         version="v4",
         expiration=timedelta(days=3),
         method="GET",
-        credentials=signer  # 👈 key fix
+        credentials=target_creds  # 👈 now Cloud Run can sign via IAM
     )
-
-    return url
