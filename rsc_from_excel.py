@@ -67,6 +67,8 @@ def get_local_excel_path():
         blob = bucket.blob("scoring/Extreme_Weighting_Scoring_Prototype_for_FormWise_REPAIRED.xlsx")
         blob.download_to_filename(local_path)
 
+    return local_path   # ✅ this makes it return the file path string
+
 # -------------------------
 # LOAD DATA
 # -------------------------
