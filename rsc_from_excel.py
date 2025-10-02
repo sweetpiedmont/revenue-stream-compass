@@ -67,8 +67,6 @@ def get_local_excel_path():
         blob = bucket.blob("scoring/Extreme_Weighting_Scoring_Prototype_for_FormWise_REPAIRED.xlsx")
         blob.download_to_filename(local_path)
 
-    return pd.read_excel(local_path)
-
 # -------------------------
 # LOAD DATA
 # -------------------------
