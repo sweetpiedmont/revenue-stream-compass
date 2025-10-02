@@ -132,11 +132,12 @@ def generate_report(payload):
     blob = bucket.blob(f"mini-reports/{filename}")
     blob.upload_from_filename(outpath)
 
-    # Generate signed URL (valid for 7 days)
+    # Generate signed URL (valid for 3 days) and tell GCS which service account to use when letting CR be the signer
     url = blob.generate_signed_url(
         version="v4",
         expiration=timedelta(days=3),
-        method="GET"
+        method="GET",
+        service_account_email="pdf-signer@rsc-pdf-reports.iam.gserviceaccount.com"
     )
 
     return url
