@@ -805,6 +805,7 @@ if __name__ == "__main__":
 
                 st.write("DEBUG - Raw User Scores:", user_scores)
                 st.write("DEBUG - Encoded User Scores JSON:", encoded_scores)
+                st.write("🚀 Entering payload build block")
 
                 payload = {
                     "user_id": user_id,
