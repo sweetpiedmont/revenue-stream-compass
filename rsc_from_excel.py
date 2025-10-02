@@ -63,7 +63,7 @@ def get_local_excel_path():
     local_path = "/tmp/Extreme_Weighting_Scoring_Prototype.xlsx"
 
     if not os.path.exists(local_path):
-        bucket = client.bucket("rsc-pdf-reports-bucket")
+        bucket = gcs_client.bucket("rsc-pdf-reports-bucket")
         blob = bucket.blob("scoring/Extreme_Weighting_Scoring_Prototype_for_FormWise_REPAIRED.xlsx")
         blob.download_to_filename(local_path)
 
@@ -180,7 +180,7 @@ def generate_channel_blurb(channel, strengths, weakness, reasons):
     - Present the weakness clearly as a challenge to mitigate or plan for, but not making it sound too dire.
     """
 
-    response = client.responses.create(
+    response = openai_client.responses.create(
         model="gpt-4.1-mini",
         input=prompt
     )
@@ -329,7 +329,7 @@ def generate_channel_long_blurb(channel, strengths, weaknesses, borrowed=False):
     Borrowed strengths note: {borrowed_note}
     """
 
-    response = client.responses.create(
+    response = openai_client.responses.create(
         model="gpt-4.1-mini",
         input=prompt
     )
