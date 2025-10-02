@@ -589,6 +589,12 @@ if __name__ == "__main__":
 
     # Only run calculations if flag is set
     if st.session_state.get("show_results", False):
+        # rebuild user_scores from session_state
+        user_scores = {
+            fid: st.session_state[f"slider_{fid}"]
+            for fid in factors["factor_id"].tolist()
+        }
+        
         factor_cols = [c for c in channels.columns if c.startswith("f_")]
 
         uw = {f"f_{fid}": float(user_scores[fid]) for fid in user_scores.keys()}
