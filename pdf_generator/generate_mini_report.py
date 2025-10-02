@@ -121,13 +121,12 @@ def generate_report(payload):
     blob = bucket.blob(f"mini-reports/{filename}")
     blob.upload_from_filename(outpath)
 
-    # 🔑 Use IAM Signer to generate signed URL (Cloud Run friendly)
+    # 🔑 Use impersonated credentials to sign
     from google.auth import default, impersonated_credentials
     from google.auth.transport import requests
 
     credentials, project_id = default()
 
-    # Impersonate pdf-signer SA instead of trying to use its key
     target_creds = impersonated_credentials.Credentials(
         source_credentials=credentials,
         target_principal="pdf-signer@rsc-pdf-reports.iam.gserviceaccount.com",
@@ -135,9 +134,15 @@ def generate_report(payload):
         lifetime=300
     )
 
+    # Actually get signed URL
     url = blob.generate_signed_url(
         version="v4",
         expiration=timedelta(days=3),
         method="GET",
-        credentials=target_creds  # 👈 now Cloud Run can sign via IAM
+        credentials=target_creds
     )
+
+    if not url:
+        raise RuntimeError("Failed to generate signed URL")
+
+    return url
