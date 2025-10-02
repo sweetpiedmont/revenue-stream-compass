@@ -100,10 +100,6 @@ if __name__ == "__main__":
 from google.cloud import storage
 from datetime import timedelta
 import os
-from google.auth import default
-
-# Get the current Cloud Run credentials
-credentials, project_id = default()
 
 def generate_report(payload):
     """Generate mini-report PDF, upload to GCS, return signed URL."""
@@ -136,13 +132,22 @@ def generate_report(payload):
     blob = bucket.blob(f"mini-reports/{filename}")
     blob.upload_from_filename(outpath)
 
-    # Generate signed URL (valid for 3 days) and tell GCS which service account to use when letting CR be the
+    # 🔑 Use IAM Signer to generate signed URL (Cloud Run friendly)
+    from google.auth import default, iam
+    from google.auth.transport import requests
+
+    credentials, project_id = default()
+    signer = iam.Signer(
+        request=requests.Request(),
+        credentials=credentials,
+        service_account_email="pdf-signer@rsc-pdf-reports.iam.gserviceaccount.com"
+    )
+
     url = blob.generate_signed_url(
         version="v4",
         expiration=timedelta(days=3),
         method="GET",
-        service_account_email="pdf-signer@rsc-pdf-reports.iam.gserviceaccount.com",
-        credentials=credentials  # 👈 force IAM-based signing
+        credentials=signer  # 👈 key fix
     )
 
     return url
