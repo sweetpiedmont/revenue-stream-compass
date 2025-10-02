@@ -14,17 +14,26 @@ from jinja2 import Environment, FileSystemLoader
 import uuid
 import json
 import base64
+from google.cloud import storage
+from google.oauth2 import service_account
+
+
 
 # -------------------------
 # SETUP
 # -------------------------
 load_dotenv()
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 st.set_page_config(page_title="Revenue Stream Compass — Top 5", page_icon="🌸", layout="centered")
 
 BASE = Path(__file__).resolve().parent
-XLSX = BASE / "Extreme_Weighting_Scoring_Prototype_for_FormWise_REPAIRED.xlsx"
+
+# Authenticate with GCP using the secret you just added
+creds = service_account.Credentials.from_service_account_info(
+    st.secrets["gcp_service_account"]
+)
+gcs_client = storage.Client(credentials=creds)
 
 # -------------------------
 # UTILITIES
@@ -49,43 +58,55 @@ def adjust_weight(w: float) -> float:
     mapping = {1: 0.0, 2: 2.0, 3: 4.0, 4: 8.0, 5: 10.0}
     return mapping.get(int(w), 0.0)
 
+def get_local_excel_path():
+    """Download the scoring Excel from GCS to /tmp/ and load into pandas."""
+    local_path = "/tmp/Extreme_Weighting_Scoring_Prototype.xlsx"
+
+    if not os.path.exists(local_path):
+        bucket = client.bucket("rsc-pdf-reports-bucket")
+        blob = bucket.blob("scoring/Extreme_Weighting_Scoring_Prototype_for_FormWise_REPAIRED.xlsx")
+        blob.download_to_filename(local_path)
+
+    return pd.read_excel(local_path)
+
 # -------------------------
 # LOAD DATA
 # -------------------------
 
 @st.cache_data
-def load_from_excel(xlsx_path: Path):
-    if not xlsx_path.exists():
-        st.error(f"Excel file not found:\n{xlsx_path}")
-        st.stop()
+def load_from_excel():
+    """Fetch Excel from GCS, load key sheets, and build factors + channels."""
+    local_path = get_local_excel_path()
+
+    if not os.path.exists(local_path):
+        bucket = gcs_client.bucket("rsc-pdf-reports-bucket")
+        blob = bucket.blob("scoring/Extreme_Weighting_Scoring_Prototype_for_FormWise_REPAIRED.xlsx")
+        blob.download_to_filename(local_path)
 
     # --- Load Weights ---
     try:
-        weights = pd.read_excel(xlsx_path, sheet_name="Weights").rename(columns=lambda c: str(c).strip())
+        weights = pd.read_excel(local_path, sheet_name="Weights").rename(columns=lambda c: str(c).strip())
     except Exception as e:
         st.error(f"Could not read 'Weights' sheet: {e}")
         st.stop()
 
-    # --- Load Snippets (optional, already in your file) ---
+    # --- Load Snippets ---
     try:
-        snippets = pd.read_excel(xlsx_path, sheet_name="Snippets").rename(columns=lambda c: str(c).strip())
+        snippets = pd.read_excel(local_path, sheet_name="Snippets").rename(columns=lambda c: str(c).strip())
     except Exception:
         snippets = pd.DataFrame(columns=["Revenue Stream","One-line Reason Template","Compass Chapter Link/Slug"])
 
     # --- Load Factor metadata + Categories ---
     try:
-        factor_meta = pd.read_excel(xlsx_path, sheet_name="Factors").rename(columns=lambda c: str(c).strip())
-        categories  = pd.read_excel(xlsx_path, sheet_name="Categories").rename(columns=lambda c: str(c).strip())
+        factor_meta = pd.read_excel(local_path, sheet_name="Factors").rename(columns=lambda c: str(c).strip())
+        categories  = pd.read_excel(local_path, sheet_name="Categories").rename(columns=lambda c: str(c).strip())
     except Exception:
         factor_meta = pd.DataFrame(columns=["factor_name","category_name","factor_description","left_label","right_label"])
         categories  = pd.DataFrame(columns=["category_name","category_description"])
 
     # --- Load Narratives ---
     try:
-        narratives = pd.read_excel(
-            xlsx_path,
-            sheet_name="Narratives"
-        ).rename(columns=lambda c: str(c).strip())
+        narratives = pd.read_excel(local_path, sheet_name="Narratives").rename(columns=lambda c: str(c).strip())
     except Exception as e:
         st.error(f"Could not read 'Narratives' sheet: {e}")
         narratives = pd.DataFrame(columns=["channel_name","factor_name","weight","strength_blurb","weakness_blurb"])
@@ -428,7 +449,7 @@ def build_results(user_scores, narratives, channels):
 
 if __name__ == "__main__":
 
-    factors, categories, channels, narratives = load_from_excel(XLSX)
+    factors, categories, channels, narratives = load_from_excel()
 
     # Build factor → category color map
     factor_to_category = dict(zip(factors["factor_name"], factors["category_name"]))
