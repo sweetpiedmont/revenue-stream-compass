@@ -132,7 +132,7 @@ def generate_report(payload):
     blob = bucket.blob(f"mini-reports/{filename}")
     blob.upload_from_filename(outpath)
 
-    # Generate signed URL (valid for 3 days) and tell GCS which service account to use when letting CR be the signer
+    # Generate signed URL (valid for 3 days) and tell GCS which service account to use when letting CR be the
     url = blob.generate_signed_url(
         version="v4",
         expiration=timedelta(days=3),
