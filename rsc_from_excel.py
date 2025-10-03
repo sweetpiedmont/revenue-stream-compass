@@ -163,23 +163,17 @@ def load_from_excel():
 # -------------------------
 
 def generate_channel_blurb(channel, strengths, weakness, reasons):
-    # Build strengths text safely
-    strength_texts = []
-    for i in range(min(2, len(strengths))):  # up to 2 strengths
-        if i < len(reasons) and reasons[i]:
-            strength_texts.append(f"- Strength {i+1}: {strengths[i]} → {reasons[i]}")
-        else:
-            strength_texts.append(f"- Strength {i+1}: {strengths[i]}")
-
-    if not strength_texts:
-        strength_texts.append("- No clear strength identified for this channel")
+    # Build prompt lines dynamically
+    strengths_text = ""
+    if len(strengths) >= 1:
+        strengths_text += f"- Strength 1: {strengths[0]} → {reasons[0]}\n"
+    if len(strengths) >= 2:
+        strengths_text += f"- Strength 2: {strengths[1]} → {reasons[1]}\n"
 
     # Weakness (use reasons[?] carefully)
     weakness_text = ""
-    if weakness:
-        idx = len(strength_texts)  # weakness reason comes after the strengths
-        reason = reasons[idx] if idx < len(reasons) else ""
-        weakness_text = f"- Weakness: {weakness} → {reason}"
+    if weakness and len(reasons) > 2:
+        weakness_text = f"- Weakness: {weakness} → {reasons[2]}\n"
 
     # Build the final prompt    
     prompt = f"""
@@ -187,9 +181,7 @@ def generate_channel_blurb(channel, strengths, weakness, reasons):
     for a flower farmer, grounded in the specific strengths, weaknesses, and reasons provided.
 
     - Channel: {channel}
-    - Strength 1: {strengths[0]} → {reasons[0]}
-    - Strength 2: {strengths[1]} → {reasons[1]}
-    - Weakness: {weakness} → {reasons[2]}
+    {strengths_text}{weakness_text}
 
     Guidelines:
     - Always speak directly to the farmer using "you" and "your" language.
