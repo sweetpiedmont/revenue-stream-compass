@@ -229,6 +229,10 @@ def get_channel_short_narrative(channel_name, narratives, user_scores):
         weakness["weakness_blurb"].iloc[0] if "weakness_blurb" in weakness else "",
     ]
 
+    st.write("DEBUG - Channel:", channel_name)
+    st.write("DEBUG - Strengths:", strengths_list)
+    st.write("DEBUG - Reasons:", reasons)
+   
     # Call the short blurb generator
     return generate_channel_blurb(channel_name, strengths_list, weakness_name, reasons)
 
