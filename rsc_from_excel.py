@@ -247,10 +247,6 @@ def get_channel_short_narrative(channel_name, narratives, user_scores):
         strengths["strength_blurb"].iloc[1] if len(strengths) > 1 and "strength_blurb" in strengths else "",
         weakness["weakness_blurb"].iloc[0] if "weakness_blurb" in weakness else "",
     ]
-
-    st.write("DEBUG - Channel:", channel_name)
-    st.write("DEBUG - Strengths:", strengths_list)
-    st.write("DEBUG - Reasons:", reasons)
    
     # Call the short blurb generator
     return generate_channel_blurb(channel_name, strengths_list, weakness_name, reasons)
@@ -663,8 +659,12 @@ if __name__ == "__main__":
         # Existing: fit-only score
         ch["fit_score"] = adjusted_scores  # already normalized 0–1
 
-        # Option 2: Weighted blend (70% fit + 30% coverage)
-        max_factors = max(channels[factor_cols].astype(bool).sum(axis=1))
+        # --- NEW: Normalize by channel size (critical factor count) ---
+        critical_counts = (channels[factor_cols] >= 8).sum(axis=1)   # factors with adjusted weight >=8
+        critical_counts = critical_counts.replace(0, 1)              # avoid div-by-zero
+        mean_count = critical_counts.mean()
+        # scale fit score so that channels with many factors don’t get unfairly dragged down
+        ch["fit_score_normalized"] = ch["fit_score"] / np.sqrt(critical_counts / mean_count)
         
         # --- Coverage calculation (count only "important" factors: Excel 4–5 → adjusted 8–10) ---
         max_factors_high = (channels[factor_cols] >= 8).sum(axis=1).max()
@@ -677,10 +677,8 @@ if __name__ == "__main__":
 
         ch["coverage"] = coverages
 
-        # --- Blended scores ---
-        ch["blend_score_70"] = 0.7 * ch["fit_score"] + 0.3 * ch["coverage"]
-        ch["score"] = ch["blend_score_70"]  # Lock in 70/30 as the scoring method
-        #ch["blend_score_80"] = 0.8 * ch["fit_score"] + 0.2 * ch["coverage"] #remove this option
+        # --- Blended scores (90/10 using normalized fit) ---
+        ch["score"] = 0.9 * ch["fit_score_normalized"] + 0.1 * ch["coverage"]
 
         ### REMOVED RADIO BUTTON AND OPTIONS FOR HOW SCORING IS DONE ###
         # Let user choose which scoring method drives the rankings
@@ -832,10 +830,6 @@ if __name__ == "__main__":
                     json.dumps(user_scores).encode("utf-8")
                 ).decode("utf-8")
 
-                st.write("DEBUG - Raw User Scores:", user_scores)
-                st.write("DEBUG - Encoded User Scores JSON:", encoded_scores)
-                st.write("🚀 Entering payload build block")
-
                 payload = {
                     "user_id": user_id,
                     "email": email,
@@ -854,7 +848,7 @@ if __name__ == "__main__":
                     r = requests.post(zapier_webhook_url, json=payload)
                     st.write("🔎 Response status:", r.status_code)  # Debug
                     if r.status_code == 200:
-                        st.success("✅ Thanks! Your personalized Top 5 explanation is on its way to your inbox.")
+                        st.success("✅ Your personalized Top 5 explanation is on its way to your inbox!")
                     else:
                         st.error(f"❌ Oops — something went wrong. Status {r.status_code}")
                 except Exception as e:
