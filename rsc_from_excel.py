@@ -720,10 +720,12 @@ if __name__ == "__main__":
         contribs["normalized_total"] = contribs.index.map(score_map)
 
         rackstack = (
-            ch.loc[:, ["channel_name", "fit_score", "coverage", "blend_score_70", "score"]]
+            ch.loc[:, ["channel_name", "fit_score", "fit_score_normalized", "coverage", "score"]]
                 .sort_values("score", ascending=False)
                 .reset_index(drop=True)
         )
+        
+        st.write("DEBUG - Channel Scores", rackstack)
 
         # --- Build Navigation Planner pages (all 18 streams, ordered by rank) ---
         # --- Build long narratives for ALL 18 channels (paid Compass only) ---
