@@ -655,8 +655,9 @@ if __name__ == "__main__":
         critical_counts = (channels[factor_cols] >= 8).sum(axis=1)   # factors with adjusted weight >=8
         critical_counts = critical_counts.replace(0, 1)              # avoid div-by-zero
         mean_count = critical_counts.mean()
+        
         # scale fit score so that channels with many factors don’t get unfairly dragged down
-        ch["fit_score_normalized"] = ch["fit_score"] / np.sqrt(critical_counts / mean_count)
+        ch["fit_score_normalized"] = ch["fit_score"] / np.cbrt(critical_counts / mean_count)
         
         # --- Coverage calculation (count only "important" factors: Excel 4–5 → adjusted 8–10) ---
         max_factors_high = (channels[factor_cols] >= 8).sum(axis=1).max()
@@ -670,29 +671,14 @@ if __name__ == "__main__":
         ch["coverage"] = coverages
 
         # --- Blended scores (90/10 using normalized fit) ---
-        ch["score"] = 0.9 * ch["fit_score_normalized"] + 0.1 * ch["coverage"]
-
-        ### REMOVED RADIO BUTTON AND OPTIONS FOR HOW SCORING IS DONE ###
-        # Let user choose which scoring method drives the rankings
-        #score_method = st.radio(
-            #"Choose scoring method for Top 5:",
-            #["Fit Only", "Blend (70/30)", "Blend (80/20)", "Coverage Only"],
-            #index=1   # default = Blend (70/30)
-        #)
-
-        #if score_method == "Fit Only":
-            #ch["score"] = ch["fit_score"]
-        #elif score_method == "Coverage Only":
-            #ch["score"] = ch["coverage"]
-        #elif score_method == "Blend (70/30)":
-            #ch["score"] = ch["blend_score_70"]
-        #elif score_method == "Blend (80/20)":
-            #ch["score"] = ch["blend_score_80"]
-        # else:
-            #ch["score"] = ch["fit_score"]  # fallback
+        ch["score"] = 0.8 * ch["fit_score_normalized"] + 0.2 * ch["coverage"]
 
         # Keep score_map synced
         score_map = dict(zip(ch["channel_name"], ch["score"]))
+
+        # --- DEBUG: Inspect scores per channel ---
+        st.write("DEBUG - Channel Scoring Snapshot:", 
+                ch[["channel_name", "fit_score", "fit_score_normalized", "coverage", "score"]])
         
         # --- Contribution Analysis (row-normalized) ---
         raw_contribs = channels[factor_cols].values * uw_aligned.values
